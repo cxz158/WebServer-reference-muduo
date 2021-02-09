@@ -59,7 +59,7 @@ void LoggingAsync::threadFunc()
     while(running_ || !currentBuffer_->empty()) // linya的WebServer源码 和muduo 中对这里都只进行了running 的判断，但我测试log的时候,发现
                                                 //日志不能很好的写入文件，发生了race comption，设想：
                                                 //1.程序在进行到while循环前就提前stop()了，此时running_会被置为false,结果当前currentBuffer_中的数据就没能成功的写入
-                                                //2.主线程在日志线程执行到临界区外后,append(),然后stop(),此时currentBuffer_ 中的数据也无法取出会出来
+                                                //2.日志线程执行到临界区外后,主线程append(),然后stop()异步日志,此时currentBuffer_ 中的数据也无法取出会出来
     {
         //临界区，取出要写的数据，交换buffer
         {
@@ -68,7 +68,6 @@ void LoggingAsync::threadFunc()
             {
                 cond_.wait_seconds(flushInterval_);
             }
-            std::cout<<"currentBuffer_ = "<<currentBuffer_->data()<<std::endl;
             buffers_.push_back(std::move(currentBuffer_));
             currentBuffer_ = std::move(newBuffer1);
             buffersToWrite.swap(buffers_);
@@ -81,7 +80,6 @@ void LoggingAsync::threadFunc()
         //assert(buffersToWrite.empty());
         for(size_t i = 0;i < buffersToWrite.size(); i++)
         {
-            std::cout<<"buffersToWrite[i] = "<<buffersToWrite[i]->data()<<std::endl;
             output.append(buffersToWrite[i]->data(),buffersToWrite[i]->length());
         }
 

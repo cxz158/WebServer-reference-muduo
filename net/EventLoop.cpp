@@ -1,15 +1,16 @@
 #include "EventLoop.h"
+#include "../base/log.h"
 #include <sys/epoll.h>
 #include <assert.h>
 #include <stdlib.h>
 
 __thread EventLoop* t_loopInThisThread = nullptr;
 
-EventLoop::EventLoop():looping_(false), threadId_(CurrentThread::tid())
+EventLoop::EventLoop():threadId_(CurrentThread::tid()), looping_(false)
 {
     if(t_loopInThisThread)
     {
-        //日志输出        
+        log_fatal("EventLoop created %ld in thread %d\n",this,threadId_);
     }
     else
     {
@@ -34,12 +35,15 @@ void EventLoop::loop()
     assertInLoopThread();
     looping_ = true;
 
-    //
+    sleep(5);
+    log("EventLoop %ld stop looping\n",this);
     looping_ = false;
 }
 
 void EventLoop::abortNotInLoopThread()
 {
     if(!isInLoopThread())
-        abort();
+        log_fatal("this loop 0x%x is not belong to thread %d\n",this,CurrentThread::tid());
 }
+
+

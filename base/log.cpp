@@ -10,7 +10,6 @@ namespace Log{
     {
         LoggingAsync_.reset(new LoggingAsync(logFileName_));
         LoggingAsync_->start();
-        std::cout<<"init finished"<<std::endl;
     }
 
 }

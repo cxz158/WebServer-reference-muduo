@@ -34,3 +34,11 @@ void log(const char* format,Args... args)
     }
 }
 
+//发生致命错误，将日志写入后，abort();
+template<typename ...Args>
+void log_fatal(const char* format,Args... args)
+{
+    log(format,args...);
+    Log::LoggingAsync_->stop();
+    abort();
+}

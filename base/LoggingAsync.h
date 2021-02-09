@@ -20,14 +20,12 @@ public:
         running_ = true;
         thread_.start();
         latch_.wait();
-        std::cout<<"LogginAsync started"<<std::endl;
     }
 
     void stop(){
         running_ = false;
         cond_.notify_one();     //提醒后台进程，即将关闭日志，将buffer中的内容赶紧写入日志文件
         thread_.join();
-        std::cout<<"LogggingAsysnc stoped"<<std::endl;
     }
 
     void append(const char* logline, int len); //前端使用append 写日志进buffer

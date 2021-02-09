@@ -1,8 +1,10 @@
 #pragma once
 #include <sys/types.h>
 #include "../base/CurrentThread.h"
+#include "../base/noncopyable.h"
 
-class EventLoop
+//一个线程只允许有一个EventLoop , 感觉有点像线程版的单例模式
+class EventLoop: noncopyable
 {
 public:
     EventLoop();
@@ -19,7 +21,7 @@ public:
     }
 
     bool isInLoopThread() const {return threadId_ == CurrentThread::tid();}
-    EventLoop* getEventLoopofCurrentThread();
+    static EventLoop* getEventLoopofCurrentThread();
 private:
     void abortNotInLoopThread();
 
