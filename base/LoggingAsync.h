@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <iostream>
 #include "CountDownLatch.h"
 #include "FixedBuffer.h"
 #include "Mutex.h"
@@ -28,7 +27,7 @@ public:
         thread_.join();
     }
 
-    void append(const char* logline, int len); //前端使用append 写日志进buffer
+    void append(const std::string& logline); //前端使用append 写日志进buffer
 private:
     void threadFunc();                        //后端 另起线程 将buffer中的内容写入日志文件
 

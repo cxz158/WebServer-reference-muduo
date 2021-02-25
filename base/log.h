@@ -1,6 +1,6 @@
 #pragma once
 #include "LoggingAsync.h"
-#define BUFSIZE 1024
+#include <error.h>
 
 namespace Log{
 
@@ -12,33 +12,38 @@ namespace Log{
 
 }
 
-//使用变参模板做成printf(fmt,...)风格的日志
+std::string format_string(const char* format, ...);
+
 template<typename ...Args>
 void log(const char* format,Args... args)
 {
     pthread_once(&Log::once_control_, Log::once_init);
-    constexpr size_t oldlen = BUFSIZE;
-    char buffer[oldlen];
-    size_t newlen = snprintf(buffer, oldlen, format, args...);
-    newlen++;    //加上末尾'\0'的长度
+    
+    std::string str = format_string(format, args...);
+    Log::LoggingAsync_->append(str);
+}
 
-    if(newlen > oldlen)
-    {
-        std::vector<char> newbuffer(newlen);
-        snprintf(newbuffer.data(), newlen, format, args...);
-        Log::LoggingAsync_->append(newbuffer.data(), newlen);
-    }
-    else
-    {
-        Log::LoggingAsync_->append(buffer, newlen-1);
-    }
+template<typename ...Args>
+void log_syserr(const char* format,Args... args)
+{
+    log(format, args...);
+    log("error = %s\n",strerror(errno));
 }
 
 //发生致命错误，将日志写入后，abort();
 template<typename ...Args>
 void log_fatal(const char* format,Args... args)
 {
-    log(format,args...);
+    log(format, args...);
     Log::LoggingAsync_->stop();
     abort();
 }
+
+template<typename ...Args>
+void log_error_fatal(const char* format,Args... args)
+{
+    log_syserr(format, args...);
+    Log::LoggingAsync_->stop();
+    abort();
+}
+

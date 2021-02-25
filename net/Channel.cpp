@@ -1,29 +1,31 @@
 #include "Channel.h"
 #include <sys/epoll.h>
+#include "EventLoop.h"
 
 const int Channel::kNoneEvent = 0;
-const int Channel::kReadEvent = EPOLLIN | EPOLLPRI;
+const int Channel::kReadEvent = EPOLLIN | EPOLLPRI | EPOLLHUP;
 const int Channel::kWriteEvent = EPOLLOUT;
 
-Channel::Channel(EventLoop* loop, int fdArg)
+Channel::Channel(EventLoop* loop, int fd)
     : loop_(loop),
-      fd_(fdArg),
+      fd_(fd),
       events_(0),
       revnets_(0),
-      index_(-1)
+      eventHandling_(false)
 {  }
 
-void Channel::update()
-{
-    
-}
+
 
 void Channel::handleEvent()
 {
-    if(revnets_ & (EPOLLERR))
+    eventHandling_ = true;
+    if(revnets_ & EPOLLERR)
         if(errorCallback_) errorCallback_();
-    if(revnets_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
+    if(revnets_ & kReadEvent)
         if(readCallback_) readCallback_();
-    if(revnets_ & EPOLLOUT)
+    if(revnets_ & kWriteEvent)
         if(writeCallback_) writeCallback_();
+    if((revnets_ & EPOLLHUP) && !(revnets_ & EPOLLIN))
+        if(closeCallback_) closeCallback_();
+    eventHandling_ = false;
 }
