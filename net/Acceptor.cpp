@@ -11,13 +11,13 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <functional>
-#include <arpa/inet.h>
 
 int Acceptor::MAXFDNUM = 65535;
 
 Acceptor::Acceptor(EventLoop* loop, int port)
     : loop_(loop),
-      sockfd_(socket_bind_listend_noblock(port)),
+      localAddr(),
+      sockfd_(socket_bind_listend_noblock(port, localAddr)),
       acceptChannel_(loop_, sockfd_),
       newConnectionCallback_(nullptr)
 {
@@ -30,17 +30,17 @@ Acceptor::Acceptor(EventLoop* loop, int port)
 void Acceptor::handleRead()
 {
     loop_->isInLoopThread();
-    struct sockaddr_in perrAddr;
-    bzero(&perrAddr, sizeof perrAddr);
-    socklen_t perrAddrlength = sizeof perrAddr;
+    struct sockaddr_in peerAddr;
+    bzero(&peerAddr, sizeof peerAddr);
+    socklen_t perrAddrlength = sizeof peerAddr;
     
-    int connfd = accept4(sockfd_, (struct sockaddr*)&perrAddr, &perrAddrlength, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    int connfd = accept4(sockfd_, (struct sockaddr*)&peerAddr, &perrAddrlength, SOCK_NONBLOCK | SOCK_CLOEXEC);
     
     if(connfd > 0)
     {
         if(newConnectionCallback_ && connfd < MAXFDNUM)  //避免文件描述符耗尽
         {
-            newConnectionCallback_(connfd, perrAddr);
+            newConnectionCallback_(connfd, localAddr, peerAddr);
         }
         else
         {

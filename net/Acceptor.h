@@ -9,14 +9,14 @@
 #include "Channel.h"
 #include <functional>
 #include <unistd.h>
-#include <sys/socket.h>
+#include <arpa/inet.h>
 
 class EventLoop;
 
 class Acceptor : noncopyable
 {
 public:
-    using NewConnectionCallback = std::function<void(int sockfd, const struct sockaddr_in&)>;
+    using NewConnectionCallback = std::function<void(int sockfd, const struct sockaddr_in&, const struct sockaddr_in&)>;
 
     Acceptor(EventLoop* loop, int port = 8080);
     ~Acceptor() { close(sockfd_); }
@@ -28,6 +28,7 @@ private:
     static int MAXFDNUM;
 
     EventLoop* loop_;
+    struct sockaddr_in localAddr;
     int sockfd_;
     Channel acceptChannel_;
     NewConnectionCallback newConnectionCallback_;

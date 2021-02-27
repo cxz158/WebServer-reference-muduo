@@ -14,33 +14,44 @@
 #include <functional>
 
 
-TcpServer::TcpServer(EventLoop* loop, int port, std::string name)
+TcpServer::TcpServer(EventLoop* loop, int port, int ThreadNum, std::string name)
     : loop_(loop),
       name_(name),
       nextId_(0),
-      acceptor_(new Acceptor(loop_, port))
+      acceptor_(new Acceptor(loop_, port)),
+      threadPool_(new EventLoopThreadPool(loop_, ThreadNum))
 {
-    acceptor_->setNewConnectionCallback(std::bind(&TcpServer::newConnection, this, std::placeholders::_1, std::placeholders::_2));    
+    acceptor_->setNewConnectionCallback(std::bind(&TcpServer::newConnection,
+                                                  this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));    
 }
 
-void TcpServer::newConnection(int connfd, const struct sockaddr_in& perrAddr)
+void TcpServer::newConnection(int connfd, const struct sockaddr_in& localAddr, const struct sockaddr_in& peerAddr)
 {
     loop_->assertInLoopThread();
     std::string connName = name_ + format_string("#%d",nextId_++);
 
-    log("TcpServer::newConnection [%s], - new connection [%s] from %s",
-        name_.c_str(), connName.c_str(), sock_ntop_ipv4(perrAddr).c_str());
+    log("%sTcpServer::newConnection [%s], - new connection [%s] from %s\n",
+      get_time().c_str(),  name_.c_str(), connName.c_str(), sock_ntop_ipv4(peerAddr).c_str());
 
-    TcpConnectionPtr conn = std::make_shared<TcpConnection>(loop_, connName, connfd, perrAddr);
+    EventLoop* ioLoop = threadPool_->getNextLoop();
+    auto conn = std::make_shared<TcpConnection>(ioLoop, connName, connfd, localAddr, peerAddr);
     connections_[connName] = conn;
     conn->setConnectionCallback(connectionCallback_);
     conn->setMessageCallback(messageCallback_);
     conn->setCloseCallback(std::bind(&TcpServer::removeConn, this, std::placeholders::_1));
+    ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));  
 }
 
 void TcpServer::removeConn(const TcpConnectionPtr& conn)
 {
+    loop_->runInLoop(std::bind(&::TcpServer::removeConnInLoop, this, conn));
+}
+
+void TcpServer::removeConnInLoop(const TcpConnectionPtr& conn)
+{
     loop_->assertInLoopThread();
-    connections_.erase(conn->name()); //因为conn 的存在，erase后 TcpConnection 依然还未销毁 
-    
+    log("TcpServer::removeConnectionInLoop [%s] - connection [%s]\n", name_, conn->name().c_str());
+    connections_.erase(conn->name());
+    EventLoop* ioLoop = conn->getLoop();
+    ioLoop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn)); //conn 会存活到退出该函数。 
 }

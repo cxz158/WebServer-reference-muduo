@@ -27,14 +27,16 @@ public:
 
     int fd() const { return fd_; }
     int events() const { return events_; }
+    void tie(const std::shared_ptr<void>& spt) { tie_ =  spt;}
     
     void set_revents(int revt){ revnets_ = revt; }
     bool isNoneEvent() const { return events_ == kNoneEvent; }
 
     void enableReading() { events_ |= kReadEvent; }
     void enableWriting() { events_  |= kWriteEvent; }
-    //void disableAll() { events_ = kNoneEvent; }
-
+    void disableWriting() { events_ &= ~kWriteEvent; }
+    void disableAll() { events_ = kNoneEvent; }
+    bool isWriting() { return events_ & kWriteEvent; }
     EventLoop* ownerLoop() { return loop_; }
 
 private:
@@ -47,6 +49,7 @@ private:
     const int fd_;
     int events_;
     int revnets_;
+    std::weak_ptr<void> tie_;   //维系channel生命的纽带，避免channel在处理handlevent时不会被销毁
 
     EventCallback readCallback_;
     EventCallback writeCallback_;

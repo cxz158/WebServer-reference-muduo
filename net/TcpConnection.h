@@ -7,7 +7,6 @@
 #pragma once
 #include "../base/noncopyable.h"
 #include "Buffer.h"
-#include "TcpServer.h"
 #include <memory>
 #include <functional>
 #include <unistd.h>
@@ -16,28 +15,42 @@
 class EventLoop;
 class Channel;
 
-class TcpConnection : noncopyable, std::enable_shared_from_this<TcpConnection>
+class TcpConnection : noncopyable,      //enable_shared_from_this() 必要要public继承!
+                      public std::enable_shared_from_this<TcpConnection>
 {
 public:
-    using ConnectionCallback = TcpServer::ConnectionCallback;
-    using MessageCallback = TcpServer::MessageCallback;
-    using CloseCallback = TcpServer::CloseCallback;
+    using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
+    using ConnectionCallback = std::function<void()>;
+    using MessageCallback = std::function<void(const TcpConnectionPtr&, Buffer*)>;
+    using CloseCallback = std::function<void(const TcpConnectionPtr&)>;
 
-    TcpConnection(EventLoop* loop, const std::string& name, int sockfd, const struct sockaddr_in& perrAddr);
+    TcpConnection(EventLoop* loop, const std::string& name, int sockfd,
+                  const struct sockaddr_in& localAddr, const struct sockaddr_in& peerAddr);
     ~TcpConnection() { close(sockfd_); }
     
-    void setConnectionCallback(ConnectionCallback& cb){ connectionCallback_ = cb; }
-    void setMessageCallback(MessageCallback& cb){ messageCallback_ = cb; }
-    void setCloseCallback(CloseCallback& cb){ closecallback_ = cb; }
+    void setConnectionCallback(const ConnectionCallback& cb){ connectionCallback_ = cb; }
+    void setMessageCallback(const MessageCallback& cb){ messageCallback_ = cb; }
+    //for TcpServer
+    void setCloseCallback(const CloseCallback& cb){ closecallback_ = cb; }
+
+    void send(const std::string& message);
+    struct sockaddr_in getPeerAddr(){ return peerAddr_; }
+    void shutdown();
     std::string name() { return name_; }
+    EventLoop* getLoop() { return loop_; }
+    void connectDestroyed();
+    void connectEstablished();
 private:
     enum StateE { kConnecting, kConnected, kDisconnecting, kDisconnected, };
 
     void setState(StateE s) { state_ = s; }
     void handleRead();
+    void handleWrite();
     void handleClose();
     void handleError();
-    /* void connectDestroyed(); */
+    
+    void sendInLoop(const std::string& message);
+    void shutdownInLoop();
 
     EventLoop* loop_;
     std::string name_;

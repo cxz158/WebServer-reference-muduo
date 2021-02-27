@@ -20,7 +20,6 @@ void Epoll::poll(ChannelList& activeChannels, int time)
     int savedErrno = errno;
     if(numEvents >= 0)
     {
-        log("epoll_wait get %d events\n", numEvents);
         for(int i = 0; i < numEvents; ++i)
         {
             Channel* channel = static_cast<Channel*>(events_[i].data.ptr);

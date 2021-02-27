@@ -4,10 +4,12 @@
 EventLoopThreadPool::EventLoopThreadPool(EventLoop* baseloop, int threadNums):
     baseloop_(baseloop),
     threadNums_(threadNums),
+    next_(0),
     started_(false)
 {
     if(threadNums <= 0)
         log_fatal("threadNums_ <= 0\n");
+    start();
 }
 
 void EventLoopThreadPool::start()

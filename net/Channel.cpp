@@ -3,7 +3,7 @@
 #include "EventLoop.h"
 
 const int Channel::kNoneEvent = 0;
-const int Channel::kReadEvent = EPOLLIN | EPOLLPRI | EPOLLHUP;
+const int Channel::kReadEvent = EPOLLIN | EPOLLPRI | EPOLLHUP | EPOLLET;
 const int Channel::kWriteEvent = EPOLLOUT;
 
 Channel::Channel(EventLoop* loop, int fd)
@@ -19,6 +19,7 @@ Channel::Channel(EventLoop* loop, int fd)
 void Channel::handleEvent()
 {
     eventHandling_ = true;
+    auto guard = tie_.lock();
     if(revnets_ & EPOLLERR)
         if(errorCallback_) errorCallback_();
     if(revnets_ & kReadEvent)

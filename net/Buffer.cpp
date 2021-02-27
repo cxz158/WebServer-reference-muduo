@@ -6,13 +6,10 @@
 ***************************************************************/
 #include "Buffer.h"
 #include "../base/log.h"
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <fcntl.h>
-#include <algorithm>
 
-size_t Buffer::BUFFSIZE = 1024;
+int Buffer::BUFFSIZE = 1024;
 
 //从文件描述符中读， 写入buffer
 int Buffer::readfd(int fd)
@@ -33,17 +30,9 @@ int Buffer::readfd(int fd)
         writeIndex_ += n;
     else 
     {
-        writeIndex_ = buffer_.size();
+        writeIndex_ += writeableBytes();
         append(extrabuf, n - writeable);
     }
     return n;
 }
-
-void Buffer::append(const char* data, size_t len)
-{
-    buffer_.resize(writeIndex_ + len);
-    std::copy(data, data+len, beginWrite());
-    writeIndex_ += len;
-}
-
 

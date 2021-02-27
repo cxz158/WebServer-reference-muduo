@@ -6,24 +6,28 @@
 ***************************************************************/
 #include "SocketOps.h"
 #include "../base/log.h"
+#include <unistd.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
+#include <sys/signal.h>
 #include <string.h>
+#include <ctime>
 
 const int LISTENQUEUE = 1024;
 
-int socket_bind_listend_noblock(uint16_t port)
+int socket_bind_listend_noblock(int port, sockaddr_in& addr)
 {
-    int sockfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
-    if(sockfd < 0)
-        log_error_fatal("create socket failed\n");
-
-    struct sockaddr_in addr;
+    if(port < 0 || port > 65535)
+        log_fatal("local_addr_init: invalid port\n");
     bzero(&addr, sizeof addr);
-
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(port);
+    
+    int sockfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC , 0);
+    int reuse = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
+    if(sockfd < 0)
+        log_error_fatal("create socket failed\n");
 
     int ret = bind(sockfd, (struct sockaddr*)&addr, sizeof addr);
     if(ret < 0)
@@ -50,4 +54,16 @@ std::string sock_ntop_ipv4(const struct sockaddr_in& addr)
         strcat(retstr, portstr);
     }
     return retstr;
+}
+
+std::string get_time()
+{
+    time_t curtime;
+    time(&curtime);
+    return ctime(&curtime);
+}
+
+void ignore_sig_pipe()
+{
+    signal(SIGPIPE, SIG_IGN);
 }

@@ -6,6 +6,8 @@
 ***************************************************************/
 #pragma once
 #include "../base/noncopyable.h"
+#include "TcpConnection.h"
+#include "EventLoopThreadPool.h"
 #include <arpa/inet.h>
 #include <functional>
 #include <memory>
@@ -13,18 +15,17 @@
 
 class EventLoop;
 class Acceptor;
-class TcpConnection;
 
 class TcpServer : noncopyable
 {
 public:
-    using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
-    using ConnectionCallback = std::function<void()>;
-    using MessageCallback = std::function<void(const char*)>;
-    using CloseCallback = std::function<void(const TcpConnectionPtr&)>;
+    using TcpConnectionPtr = TcpConnection::TcpConnectionPtr;
+    using ConnectionCallback = TcpConnection::ConnectionCallback;
+    using MessageCallback = TcpConnection::MessageCallback;
+    using CloseCallback = TcpConnection::CloseCallback;
 
-    TcpServer(EventLoop* loop, int port, std::string name = "TcpServer");
-    ~TcpServer();
+    TcpServer(EventLoop* loop, int port, int threadNum,  std::string name = "TcpServer");
+    ~TcpServer(){};
 
     //这两Function将传递给TcpConnection
     void setConnectionCallback(const ConnectionCallback& cb) { connectionCallback_ = cb; }
@@ -32,9 +33,10 @@ public:
 
 private:
     using ConnectionMap = std::map<std::string, TcpConnectionPtr>;
-
-    void newConnection(int connfd, const sockaddr_in& perrAddr);
+ 
+    void newConnection(int connfd, const sockaddr_in& localAddr, const sockaddr_in& peerAddr);
     void removeConn(const TcpConnectionPtr& conn);
+    void removeConnInLoop(const TcpConnectionPtr& conn);
 
     EventLoop* loop_;
     const std::string name_;
@@ -43,5 +45,6 @@ private:
     ConnectionMap connections_;
     ConnectionCallback connectionCallback_;
     MessageCallback messageCallback_;
+    std::unique_ptr<EventLoopThreadPool> threadPool_;
 };
 

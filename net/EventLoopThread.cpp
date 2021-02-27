@@ -21,7 +21,6 @@ EventLoopThread::~EventLoopThread()
     }
 }
 
-
 EventLoop* EventLoopThread::startLoop()
 {
     assert(!thread_.started());
@@ -31,20 +30,17 @@ EventLoop* EventLoopThread::startLoop()
         while(loop_ == nullptr) // 等待线程初始话完成
             cond_.wait();
     }
-    
     return loop_;
 }
 
 void EventLoopThread::threadfunc()
 {
    EventLoop loop;
-
    {
        MutexLockGuard lock(mutex_);
        loop_ = &loop; 
        cond_.notify_all();
    }
-    
    loop.loop();
    loop_ = nullptr;
 }
