@@ -26,9 +26,9 @@ public:
 
     TcpConnection(EventLoop* loop, const std::string& name, int sockfd,
                   const struct sockaddr_in& localAddr, const struct sockaddr_in& peerAddr);
-    ~TcpConnection() { close(sockfd_); }
+    ~TcpConnection();
     
-    void setConnectionCallback(const ConnectionCallback& cb){ connectionCallback_ = cb; }
+    /* void setConnectionCallback(const ConnectionCallback& cb){ connectionCallback_ = cb; } */
     void setMessageCallback(const MessageCallback& cb){ messageCallback_ = cb; }
     //for TcpServer
     void setCloseCallback(const CloseCallback& cb){ closecallback_ = cb; }
@@ -41,7 +41,7 @@ public:
     void connectDestroyed();
     void connectEstablished();
 private:
-    enum StateE { kConnecting, kConnected, kDisconnecting, kDisconnected, };
+    enum StateE { kConnecting, kConnected, kDisconnecting, kDisconnected };
 
     void setState(StateE s) { state_ = s; }
     void handleRead();
@@ -59,7 +59,7 @@ private:
     std::unique_ptr<Channel> channel_;
     struct sockaddr_in localAddr_;
     struct sockaddr_in peerAddr_;
-    ConnectionCallback connectionCallback_;
+    /* ConnectionCallback connectionCallback_; */
     MessageCallback messageCallback_;
     CloseCallback closecallback_;
 

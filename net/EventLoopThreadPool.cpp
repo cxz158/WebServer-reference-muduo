@@ -19,7 +19,7 @@ void EventLoopThreadPool::start()
     started_ = true;
     for(int i = 0; i < threadNums_; ++i)
     {
-        std::string threadName = format_string("EventLoopThreadPool %d",i);        
+        std::string threadName = format_string("EventLoopThreadPool #%d",i);        
         std::unique_ptr<EventLoopThread> t(new EventLoopThread(threadName));   
         threads_.push_back(std::move(t));
         loops_.push_back(threads_[i]->startLoop());

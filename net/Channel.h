@@ -34,9 +34,7 @@ public:
 
     void enableReading() { events_ |= kReadEvent; }
     void enableWriting() { events_  |= kWriteEvent; }
-    void disableWriting() { events_ &= ~kWriteEvent; }
     void disableAll() { events_ = kNoneEvent; }
-    bool isWriting() { return events_ & kWriteEvent; }
     EventLoop* ownerLoop() { return loop_; }
 
 private:

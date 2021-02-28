@@ -8,7 +8,7 @@
 #include "EventLoop.h"
 #include <cstdio>
 
-const int TIMERINTERVAL = 1;  //timerfd 被唤醒的时间间隔
+const int TIMERINTERVAL = 3;  //s timerfd 被唤醒的时间间隔
 
 inline
 long delay_expiredTime(int delay)

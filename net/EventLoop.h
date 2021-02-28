@@ -27,7 +27,6 @@ public:
     ~EventLoop();
     
     void loop();
-    
     void assertInLoopThread()
     {
         if(!isInLoopThread())

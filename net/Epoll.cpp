@@ -46,7 +46,7 @@ void Epoll::channel_xxx(Channel& channel, int operation)
     event.data.ptr = &channel;
     if(epoll_ctl(epollfd_, operation, fd, &event) < 0)
     {
-        log_syserr("call epoll_ctl error! this fd = %d, operation = %s\n", fd, operationToString(operation));
+        log_syserr("call epoll_ctl error! this fd = %d, operation = %s\n", fd, operationToString(operation).c_str());
     }
 }
 

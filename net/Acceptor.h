@@ -18,7 +18,7 @@ class Acceptor : noncopyable
 public:
     using NewConnectionCallback = std::function<void(int sockfd, const struct sockaddr_in&, const struct sockaddr_in&)>;
 
-    Acceptor(EventLoop* loop, int port = 8080);
+    Acceptor(EventLoop* loop, int port);
     ~Acceptor() { close(sockfd_); }
 
     void setNewConnectionCallback(const NewConnectionCallback& cb) { newConnectionCallback_ = cb; }

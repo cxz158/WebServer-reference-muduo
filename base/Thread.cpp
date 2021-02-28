@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <iostream>
 
+const std::string defalut_thread_name = "defalut";
 //传递给线程的参数
 struct ThreadData
 {
@@ -22,6 +23,7 @@ struct ThreadData
         platch_->countDown();
         platch_ = nullptr;
         
+        CurrentThread::t_threadName = name_.c_str();
         func_();
         CurrentThread::t_threadName = "finished";
     }
@@ -45,7 +47,7 @@ void Thread::start()
 {
     assert(!started_);
     started_ = true;
-    ThreadData* data = new ThreadData(func_,name_,&tid_,&latch_);
+    ThreadData* data = new ThreadData(func_, name_, &tid_, &latch_);
     if(pthread_create(&pthreadId, nullptr, start_thread,data) == 0)
     {
         latch_.wait(); //等待子线程设置tid

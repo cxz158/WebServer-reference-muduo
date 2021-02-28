@@ -41,7 +41,7 @@ private:
     bool disabled_;
 };
 
-class Timerlager
+class Timerlarger
 {
 public:
     bool operator()(std::unique_ptr<Timer>& lhs, std::unique_ptr<Timer>& rhs) const 
@@ -67,5 +67,5 @@ private:
     EventLoop* loop_;
     const int timefd_;
     Channel timerfdChannel_;
-    std::priority_queue<TimerPtr, std::vector<TimerPtr>, Timerlager> Timers_;  //优先级队列（最小堆）
+    std::priority_queue<TimerPtr, std::vector<TimerPtr>, Timerlarger> Timers_;  //优先级队列（最小堆）
 };

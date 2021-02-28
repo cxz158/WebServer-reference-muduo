@@ -6,7 +6,7 @@
 #include "noncopyable.h"
 #include "CountDownLatch.h"
 
-const std::string defalut_thread_name = "Thread";
+extern const std::string defalut_thread_name;
 
 class Thread : noncopyable
 {

@@ -14,7 +14,7 @@
 #include <sys/eventfd.h>
 
 __thread EventLoop* t_loopInThisThread = nullptr;
-const int POLLINTERVAL = 3000;
+const int POLLINTERVAL = 5000; //ms
 
 int create_eventfd()
 {
@@ -42,6 +42,8 @@ EventLoop::EventLoop()
     else
     {
         t_loopInThisThread = this;
+        wakeupChannel_->enableReading();
+        epoller_->channel_add(*wakeupChannel_);
     }
 
 }
