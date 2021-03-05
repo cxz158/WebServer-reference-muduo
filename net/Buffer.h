@@ -20,43 +20,30 @@
 class Buffer
 {
 public:
-    Buffer():buffer_(BUFFSIZE), writeIndex_(0), readIndex_(0){}
+    Buffer():buffer_(BUFFSIZE), writeIndex_(0), readIndex_(0), checkInex_(0){}
     ~Buffer(){}
     int readfd(int fd);
-    void append(const char* data, size_t len)
-    { 
-        if(writeableBytes() == 0)
-            std::copy(data, data+len, std::back_inserter(buffer_));
-        else
-            std::copy(data, data+len, buffer_.begin()+writeIndex_);
-        writeIndex_ = buffer_.size(); 
-    }
-
+    void append(const char* data, size_t len);
     size_t readableBytes() const { return writeIndex_ - readIndex_; }
-    const char* peek() const { return buffer_.data() + readIndex_; }
-    void retrive(int n) { 
-        readIndex_ += n; 
-        if(readIndex_ == writeIndex_)
-            init();
-    }
 
-    std::string getMessage() { 
-        std::string ret =  buffer_.data()+readIndex_;
-        init(); 
-        return ret;
-    }
+    const char* readbegin() const { return buffer_.data() + readIndex_; }
+    const char* readend() const { return buffer_.data() + writeIndex_; }
+    char* readbegin() { return buffer_.data() + readIndex_; }
+    char* readend() { return buffer_.data() + writeIndex_; }
+    char* checkPeek() { return buffer_.data() + checkInex_; }
+    void checkFinish() { checkInex_ = readIndex_; }
+
+    void retrive(int n){ readIndex_ += n; }
+    void retrive_to(char* rsc){ readIndex_ +=  readbegin() - rsc + 1;}
+    void init();
+    char* findLine();
 
 private:
     static int BUFFSIZE;
-    void init() {  
-        buffer_.resize(BUFFSIZE);
-        bzero(buffer_.data(), std::min(writeIndex_, BUFFSIZE));
-        writeIndex_ = readIndex_ = 0; 
-    }
     size_t writeableBytes() const { return buffer_.size() - writeIndex_; }
-
     std::vector<char> buffer_;
     int writeIndex_;
     int readIndex_;
+    int checkInex_;
 };
 

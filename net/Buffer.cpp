@@ -8,6 +8,7 @@
 #include "../base/log.h"
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <assert.h>
 
 int Buffer::BUFFSIZE = 1024;
 
@@ -36,3 +37,28 @@ int Buffer::readfd(int fd)
     return n;
 }
 
+void Buffer::append(const char* data, size_t len)
+{
+    if(writeableBytes() == 0)
+        std::copy(data, data+len, std::back_inserter(buffer_));
+    else
+        std::copy(data, data+len, buffer_.begin()+writeIndex_);
+    writeIndex_ = buffer_.size(); 
+}
+
+char* Buffer::findLine()
+{
+    auto i = std::find(buffer_.begin()+readIndex_, buffer_.end(), '\n');
+    if(i == buffer_.end())
+        return  nullptr;
+    else
+        return i.base();
+}
+
+inline
+void Buffer::init() {  
+    assert(writeIndex_ == readIndex_);
+    buffer_.resize(BUFFSIZE);
+    bzero(buffer_.data(), std::min(writeIndex_, BUFFSIZE));
+    writeIndex_ = readIndex_ = 0; 
+}

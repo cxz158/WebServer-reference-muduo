@@ -23,28 +23,25 @@ using CallBack = std::function<void()>;
 class Timer
 {
 public:
-    Timer(CallBack callboack,int expiredTime, int interval); //定时单位:毫秒
+    Timer(CallBack callboack, int interval); //定时单位:毫秒
     ~Timer() {}
     void run()const { timeoutCallBack_(); }
     
     long get_expiredTime() const { return expiredTime_; }
-    int get_interval() const { return interval_; }
-    void restart();
 
-    void endisabled() { disabled_ = true; }
-    bool disabled() { return disabled_; }
-
+    void disabled() { abled_ = false; }
+    bool abled() { return abled_; }
+    
 private:
     long expiredTime_;      //定时器过期时间,绝对时间
-    const int interval_;        //循环定时间隔
     CallBack timeoutCallBack_;
-    bool disabled_;
+    bool abled_;
 };
 
 class Timerlarger
 {
 public:
-    bool operator()(std::unique_ptr<Timer>& lhs, std::unique_ptr<Timer>& rhs) const 
+    bool operator()(std::shared_ptr<Timer>& lhs, std::shared_ptr<Timer>& rhs) const 
     { 
         return lhs->get_expiredTime() > rhs->get_expiredTime();
     }
@@ -53,19 +50,18 @@ public:
 class TimerQueue : noncopyable
 {
 public:
+    using TimerSptr = std::shared_ptr<Timer>;
+    
     TimerQueue(EventLoop* loop);
     ~TimerQueue() { close(timefd_); };
 
-    void addTimer(CallBack cb, int timeout, int interval);
-    void removeTimer(Timer* timer);
-
+    TimerSptr addTimer(CallBack cb, int interval);
 private:
-    using TimerPtr = std::unique_ptr<Timer>;
     void handleRead();
-    void addTimerInLoop(Timer* timer);
+    void addTimerInLoop(TimerSptr timer);
 
     EventLoop* loop_;
     const int timefd_;
     Channel timerfdChannel_;
-    std::priority_queue<TimerPtr, std::vector<TimerPtr>, Timerlarger> Timers_;  //优先级队列（最小堆）
+    std::priority_queue<TimerSptr, std::vector<TimerSptr>, Timerlarger> Timers_;  //优先级队列（最小堆）
 };

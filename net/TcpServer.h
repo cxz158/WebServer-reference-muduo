@@ -24,24 +24,24 @@ public:
     using MessageCallback = TcpConnection::MessageCallback;
     using CloseCallback = TcpConnection::CloseCallback;
 
-    TcpServer(EventLoop* loop, int port, int threadNum,  std::string name = "TcpServer");
+    TcpServer(EventLoop* loop, int threadNum, int port,  std::string name = "TcpServer");
     ~TcpServer(){};
 
     //这两Function将传递给TcpConnection
     /* void setConnectionCallback(const ConnectionCallback& cb) { connectionCallback_ = cb; } */ //暂未使用
     void setMessageCallback(const MessageCallback& cb) { messageCallback_ = cb; }
+    void removeConn(const TcpConnectionPtr& conn);
 
 private:
     using ConnectionMap = std::map<std::string, TcpConnectionPtr>;
  
     void newConnection(int connfd, const sockaddr_in& localAddr, const sockaddr_in& peerAddr);
-    void removeConn(const TcpConnectionPtr& conn);
     void removeConnInLoop(const TcpConnectionPtr& conn);
 
     EventLoop* loop_;
     const std::string name_;
     unsigned nextId_;
-    std::unique_ptr<Acceptor> acceptor_;
+    std::shared_ptr<Acceptor> acceptor_;
     ConnectionMap connections_;
     /* ConnectionCallback connectionCallback_; */
     MessageCallback messageCallback_;

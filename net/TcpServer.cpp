@@ -14,7 +14,7 @@
 #include <functional>
 
 
-TcpServer::TcpServer(EventLoop* loop, int port, int ThreadNum, std::string name)
+TcpServer::TcpServer(EventLoop* loop, int ThreadNum, int port, std::string name)
     : loop_(loop),
       name_(name),
       nextId_(0),
@@ -50,7 +50,6 @@ void TcpServer::removeConn(const TcpConnectionPtr& conn)
 void TcpServer::removeConnInLoop(const TcpConnectionPtr& conn)
 {
     loop_->assertInLoopThread();
-    log("TcpServer::removeConnectionInLoop [%s] - connection [%s]\n", name_.c_str(), conn->name().c_str());
     connections_.erase(conn->name());
     EventLoop* ioLoop = conn->getLoop();
     ioLoop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn)); //conn 会存活到退出该函数。 

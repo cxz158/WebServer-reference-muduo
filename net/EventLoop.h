@@ -13,10 +13,10 @@
 #include "../base/CurrentThread.h"
 #include "../base/noncopyable.h"
 #include "../base/Mutex.h"
+#include "Timer.h"
 
 class Channel;
 class Epoll;
-class TimerQueue;
 //一个线程只允许有一个EventLoop
 class EventLoop: noncopyable
 {
@@ -50,7 +50,7 @@ public:
     void updateChannel(Channel& channel);
     void removeChannel(Channel& channel);
 
-    void addTimer(std::function<void()> cb, int timeout, int interval = 0); //定时单位：毫秒
+    TimerQueue::TimerSptr addTimer(std::function<void()> cb, int timeout); //定时单位：毫秒
 
     void runInLoop(const Functor& cb);
     void queueInLoop(const Functor& cb);
@@ -75,6 +75,5 @@ private:
     MutexLock mutex_;
     std::vector<Functor> pendingFunctors_;   //线程待处理事件,因为其他任何线程都可能委托事件给本线程，该变量需要靠mutex_同步
     ChannlList activeChannels_;
-    
 };
 

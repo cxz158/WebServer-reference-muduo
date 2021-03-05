@@ -14,23 +14,31 @@ Channel::Channel(EventLoop* loop, int fd)
       fd_(fd),
       events_(0),
       revnets_(0),
-      eventHandling_(false)
+      eventHandling_(false),
+      tied(false)
 {  }
 
 
 
 void Channel::handleEvent()
 {
+    std::shared_ptr<void> guard;
+    if(tied)
+    {
+        guard = tie_.lock();
+        if(guard)
+            handleEventWithGuard();
+    } else {
+        handleEventWithGuard();
+    }
+}
+
+void Channel::handleEventWithGuard()
+{
     eventHandling_ = true;
-    auto guard = tie_.lock();
-    if(revnets_ & (EPOLLIN | EPOLLHUP | EPOLLPRI))
-        if(readCallback_) 
-        {
-            if(guard)
-                printf("[%s] readcall\n",CurrentThread::name());
-            readCallback_();
-        }
     if(revnets_ & EPOLLOUT)
         if(writeCallback_) writeCallback_();
+    if(revnets_ & (EPOLLIN | EPOLLHUP | EPOLLPRI))
+        if(readCallback_) readCallback_();
     eventHandling_ = false;
 }

@@ -116,9 +116,9 @@ void EventLoop::queueInLoop(const Functor& cb)
         wakeup();
 }
 
-void EventLoop::addTimer(std::function<void()> cb, int timeout, int interval)
+TimerQueue::TimerSptr EventLoop::addTimer(std::function<void()> cb, int timeout)
 { 
-    timerQueue_->addTimer(cb, timeout, interval); 
+    return timerQueue_->addTimer(cb, timeout); 
 }
 
 void EventLoop::abortNotInLoopThread()

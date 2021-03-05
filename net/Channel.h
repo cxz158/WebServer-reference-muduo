@@ -27,7 +27,10 @@ public:
 
     int fd() const { return fd_; }
     int events() const { return events_; }
-    void tie(const std::shared_ptr<void>& spt) { tie_ =  spt;}
+    void tie(const std::shared_ptr<void>& spt) {
+        tied = true;
+        tie_ =  spt;
+    }
     
     void set_revents(int revt){ revnets_ = revt; }
     bool isNoneEvent() const { return events_ == kNoneEvent; }
@@ -37,11 +40,12 @@ public:
     void disableAll() { events_ = kNoneEvent; }
     EventLoop* ownerLoop() { return loop_; }
 
-private:
-
+private: 
     static const int kNoneEvent;
     static const int kReadEvent;
     static const int kWriteEvent;
+
+    void handleEventWithGuard();
 
     EventLoop* loop_;
     const int fd_;
@@ -55,6 +59,7 @@ private:
     EventCallback closeCallback_;
 
     bool eventHandling_;
+    bool tied;
 };
 
 using ChannelPtr = std::shared_ptr<Channel>;

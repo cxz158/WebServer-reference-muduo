@@ -11,6 +11,10 @@
 #include "../base/CurrentThread.h"
 #include <assert.h>
 #include <error.h>
+#include <unistd.h>
+#include <sys/sendfile.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 TcpConnection::TcpConnection(EventLoop* loop, const std::string& name, int sockfd,
                              const struct sockaddr_in& localAddr, const struct sockaddr_in& perrAddr)
@@ -47,16 +51,16 @@ TcpConnection::~TcpConnection()
     close(sockfd_);
 }
 
-void TcpConnection::send(const std::string& message)
+void TcpConnection::send(const char* message, size_t len)
 {
     if(state_ == kConnected)
     {
         if(loop_->isInLoopThread())
         {
-            sendInLoop(message);
+            sendInLoop(message, len);
         }
         else{
-            loop_->runInLoop(std::bind(&TcpConnection::sendInLoop, this, message));
+            loop_->runInLoop(std::bind(&TcpConnection::sendInLoop, this, message, len));
         }
     }
 }
@@ -78,7 +82,6 @@ void TcpConnection::handleRead()
         messageCallback_(shared_from_this(), &inbuffer);
     }
     else if(n == 0){
-        printf("read = %d handclose\n", n);
         handleClose();
     }
     else{
@@ -93,7 +96,7 @@ void TcpConnection::handleWrite()
     loop_->assertInLoopThread();
     if(outbuffer.readableBytes() > 0)
     {
-        size_t n = write(sockfd_, outbuffer.peek(), outbuffer.readableBytes());
+        size_t n = write(sockfd_, outbuffer.readbegin(), outbuffer.readableBytes());
         if(n > 0)
         {
             outbuffer.retrive(n);
@@ -111,12 +114,12 @@ void TcpConnection::handleWrite()
     }
 }
 
-//对方发送来FIN 本地检测到buffer.readableBytes == 0 后 shutdown
+
 void TcpConnection::handleClose()
 {
     loop_->assertInLoopThread();
-    assert(state_ == kConnected || state_ == kConnecting);
-    StateE(kDisconnected);
+    assert(state_ == kConnected || state_ == kDisconnecting);
+    setState(kDisconnected);
     log("[%s]TcpConnection::handleClose [%s]\n",CurrentThread::name(), name_.c_str());
     closecallback_(shared_from_this());
 }
@@ -124,35 +127,35 @@ void TcpConnection::handleClose()
 
 void TcpConnection::handleError()
 {
-   loop_->assertInLoopThread();
-   log_syserr("TcpConnection::handleError [%s]\n",name_.c_str());
-   if(errno != EAGAIN)
-       handleClose();
+    loop_->assertInLoopThread();
+    log_syserr("TcpConnection::handleError [%s]\n",name_.c_str());
+    handleClose();
 }
 
-void TcpConnection::sendInLoop(const std::string& message)
+void TcpConnection::sendInLoop(const char* msg, size_t len)
 {
     loop_->assertInLoopThread();
     size_t writen = 0;
     //缓冲区中暂无数据, 直接write
     if(outbuffer.readableBytes() == 0)
     {
-        writen = write(sockfd_, message.data(), message.size());
+        writen = write(sockfd_, msg, len);
         if(writen >= 0)
         {
-            if(writen < message.size()) //没写全
+            if(writen < len) //没写全
             {
                 log("[%s] I am going to write more data\n", name_.c_str());
             }
         }else{
+            writen = 0;
             log_syserr("[%s] TcpConnection::sendInLoop\n", name_.c_str());
         }
     }
 
     //实际写入的数据少于需要写入的数据，将还未写入的数据append到buffer中
-    if(writen < message.size())
+    if(writen < len)
     {
-        outbuffer.append(message.data()+writen, message.size()-writen);
+        outbuffer.append(msg + writen, len-writen);
     }
 }
 
@@ -170,3 +173,20 @@ void TcpConnection::connectDestroyed()
     loop_->assertInLoopThread();
     loop_->removeChannel(*channel_);
 }
+
+SENDFILECODE TcpConnection::sendFile(const char* filename)
+{
+    struct stat file_stat;
+    if((stat(filename, &file_stat)) < 0)
+        return SENDFILECODE::NORESOURCE;    
+    else if(!(file_stat.st_mode & S_IROTH))
+        return SENDFILECODE::FORBIDDEN;
+    else if(S_ISDIR(file_stat.st_mode))
+        return SENDFILECODE::ISDIR;
+    int filefd = open(filename, O_RDONLY);
+    if(sendfile(sockfd_, filefd, nullptr, file_stat.st_size) == 0)
+        return SENDFILECODE::SUCCESS;
+    else
+        return SENDFILECODE::OTHREBAD;
+}
+

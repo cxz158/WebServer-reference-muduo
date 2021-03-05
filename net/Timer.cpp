@@ -19,20 +19,11 @@ long delay_expiredTime(int delay)
     return ret;
 }
 
-Timer::Timer(CallBack callback,int expiredTime, int interval)
-    : expiredTime_(delay_expiredTime(expiredTime)),
-      interval_(interval),
+Timer::Timer(CallBack callback, int interval)
+    : expiredTime_(delay_expiredTime(interval)),
       timeoutCallBack_(callback),
-      disabled_(false)
+      abled_(true)
 {  }
-
-
-inline
-void Timer::restart()
-{
-    expiredTime_ = delay_expiredTime(interval_);
-}
-
 
 int create_timerfd()
 {
@@ -65,10 +56,11 @@ TimerQueue::TimerQueue(EventLoop* loop)
     start_timerfd(timefd_);
 }
 
-void TimerQueue::addTimer(CallBack cb, int timeout, int interval)
+TimerQueue::TimerSptr TimerQueue::addTimer(CallBack cb, int interval)
 {
-   Timer* timer(new Timer(cb, timeout, interval)); 
+   auto timer = std::make_shared<Timer>(cb, interval);
    loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop, this, timer));
+   return timer;
 }
 
 void TimerQueue::handleRead()
@@ -83,23 +75,17 @@ void TimerQueue::handleRead()
     long long curTime = now.tv_sec * 1000 + now.tv_usec / 1000;
     while(!Timers_.empty() && Timers_.top()->get_expiredTime() < curTime)
     {
-        if(!Timers_.top()->disabled())
+        if(Timers_.top()->abled())
         {
             Timers_.top()->run();
-        }
-
-        if(Timers_.top()->get_interval())
-        {
-            Timer* tmp = new Timer(*Timers_.top());
-            tmp->restart();
-            addTimerInLoop(tmp);
         }
         Timers_.pop();
     }
 }
 
-void TimerQueue::addTimerInLoop(Timer* timer)
+void TimerQueue::addTimerInLoop(TimerSptr timer)
 {
     loop_->assertInLoopThread();
-    Timers_.push(TimerPtr(timer));
+    Timers_.push(timer);
 }
+

@@ -15,7 +15,15 @@
 class EventLoop;
 class Channel;
 
-class TcpConnection : noncopyable,      //enable_shared_from_this() 必要要public继承!
+enum class SENDFILECODE{
+    SUCCESS,        //成功
+    NORESOURCE,     //文件不存在
+    ISDIR,          //目标是文件夹
+    FORBIDDEN,      //权限不足
+    OTHREBAD,       //其他失败情况
+};
+
+class TcpConnection : noncopyable,//enable_shared_from_this() 必要要public继承!
                       public std::enable_shared_from_this<TcpConnection>
 {
 public:
@@ -32,12 +40,15 @@ public:
     void setMessageCallback(const MessageCallback& cb){ messageCallback_ = cb; }
     //for TcpServer
     void setCloseCallback(const CloseCallback& cb){ closecallback_ = cb; }
-
-    void send(const std::string& message);
+    void send(const std::string& msg){ send(msg.c_str(), msg.size()); } 
+    void send(const char* msg, size_t size);
+    SENDFILECODE sendFile(const char* filename);
     struct sockaddr_in getPeerAddr(){ return peerAddr_; }
+    struct sockaddr_in getLocalAddr(){ return localAddr_; }
     void shutdown();
     std::string name() { return name_; }
     EventLoop* getLoop() { return loop_; }
+    
     void connectDestroyed();
     void connectEstablished();
 private:
@@ -49,7 +60,7 @@ private:
     void handleClose();
     void handleError();
     
-    void sendInLoop(const std::string& message);
+    void sendInLoop(const char* msg, size_t len);
     void shutdownInLoop();
 
     EventLoop* loop_;
