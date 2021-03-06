@@ -34,7 +34,7 @@ public:
     void checkFinish() { checkInex_ = readIndex_; }
 
     void retrive(int n){ readIndex_ += n; }
-    void retrive_to(char* rsc){ readIndex_ +=  readbegin() - rsc + 1;}
+    void retrive_to(char* rsc){ readIndex_ +=  rsc + 1 - readbegin();}
     void init();
     char* findLine();
 

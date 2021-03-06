@@ -272,7 +272,7 @@ void build_request(const char *url)
 	  strcat(request," HTTP/1.1");
   strcat(request,"\r\n");
   if(http10>0)
-	  strcat(request,"User-Agent: WebBench "PROGRAM_VERSION"\r\n");
+	  strcat(request,"User-Agent: WebBench " PROGRAM_VERSION"\r\n");
   if(proxyhost==NULL && http10>0)
   {
 	  strcat(request,"Host: ");

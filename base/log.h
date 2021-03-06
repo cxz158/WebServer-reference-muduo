@@ -18,7 +18,6 @@ template<typename ...Args>
 void log(const char* format,Args... args)
 {
     pthread_once(&Log::once_control_, Log::once_init);
-    
     std::string str = format_string(format, args...);
     Log::LoggingAsync_->append(str);
 }

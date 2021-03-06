@@ -3,7 +3,7 @@
 #include "../base/log.h"
 #include <assert.h>
 
-static const int NUMEVENTS = 16;
+static const int NUMEVENTS = 128;
 
 Epoll::Epoll(EventLoop* loop):
     epollfd_(epoll_create1(EPOLL_CLOEXEC)),

@@ -22,8 +22,9 @@ const std::string error_404_title = "Not Found";
 const std::string error_404_form = "The request file was not found on this sever.\n";
 const std::string error_500_title = "Internal Error";
 const std::string error_500_form = "There was an unusual problem serving the requested file.\n";
+
 /* 网站根目录 */
-const char* doc_root = "./html";
+const char* doc_root = "/tmp/html";
 
 struct HttpData
 {
@@ -39,15 +40,13 @@ struct HttpData
     char* m_host;
     int m_content_length;
     bool m_linger;
-    void init_file()
+
+    HttpData():m_mthod(METHOD::GET), m_url(nullptr), m_file_address(nullptr),
+            m_file_size(0), m_version(nullptr), m_content_length(0), m_linger(false)
     {
-        if(m_file_address)
-        {
-            munmap(m_file_address, m_file_size);
-            m_file_address = nullptr;
-            m_file_size = 0;
-        }
-    } 
+        bzero(m_real_file, sizeof m_real_file);
+    }
+
     ~HttpData()
     {
         if(m_file_address)
@@ -178,10 +177,10 @@ HTTP_CODE HttpSever::parse_request_line(HttpData& httpdata, Buffer& buff, CHECK_
         return HTTP_CODE::BAD_REQUEST;
     *url++ = '\0';
     char* method = buff.checkPeek();
-    if(strcmp(method, "GET"))
+    if(strcmp(method, "GET") == 0)
         httpdata.m_mthod = METHOD::GET;
-    else if(strcmp(method, "POST"))
-        httpdata.m_mthod = METHOD::POST;
+    else if(strcmp(method, "HEAD") == 0)
+        httpdata.m_mthod = METHOD::HEAD;
     else
         return HTTP_CODE::BAD_REQUEST;
 
@@ -199,7 +198,8 @@ HTTP_CODE HttpSever::parse_request_line(HttpData& httpdata, Buffer& buff, CHECK_
         url += 7;
         url = strchr(url, '/');
     }
-    if(!url || url[0] !='/')
+    httpdata.m_url = url;
+    if(!httpdata.m_url || httpdata.m_url[0] !='/')
         return HTTP_CODE::BAD_REQUEST;
     checkstate = CHECK_STATE::CHECK_STATE_HEADER;
     buff.checkFinish();
@@ -288,7 +288,7 @@ HTTP_CODE HttpSever::parse_main(HttpData& httpdata, Buffer& buff, CHECK_STATE& c
                 }
                 else if(retcode == HTTP_CODE::GET_REQUEST)
                 {
-                    return HTTP_CODE::GET_REQUEST;
+                    return do_request(httpdata);
                 }
                 break;
             }

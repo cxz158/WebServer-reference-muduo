@@ -85,7 +85,7 @@ void TcpConnection::handleRead()
         handleClose();
     }
     else{
-        log_syserr("[%s]TcpConnection::handleRead\n",name_.c_str());
+        log_syserr("[%s]TcpConnection::handleRead error!\n",name_.c_str());
     }
 }
 
@@ -109,7 +109,7 @@ void TcpConnection::handleWrite()
                 log("[%s]I am going to write more data\n",name_.c_str());
             }        
         }else{
-            log_syserr("TcpConnection::handleWrite\n");
+            log_syserr("TcpConnection::handleWrite error!\n");
         }
     }
 }
@@ -118,10 +118,12 @@ void TcpConnection::handleWrite()
 void TcpConnection::handleClose()
 {
     loop_->assertInLoopThread();
-    assert(state_ == kConnected || state_ == kDisconnecting);
-    setState(kDisconnected);
-    log("[%s]TcpConnection::handleClose [%s]\n",CurrentThread::name(), name_.c_str());
-    closecallback_(shared_from_this());
+    if(state_ != kDisconnected)
+    {
+         setState(kDisconnected);
+         log("[%s] TcpConnection::handleClose [%s]\n",CurrentThread::name(), name_.c_str());
+         closecallback_(shared_from_this());
+    }
 }
 
 

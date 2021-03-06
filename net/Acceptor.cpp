@@ -11,8 +11,9 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <functional>
+#include <errno.h>
 
-int Acceptor::MAXFDNUM = 65535;
+int Acceptor::MAXFDNUM = 30000;
 
 Acceptor::Acceptor(EventLoop* loop, int port)
     : loop_(loop),
@@ -33,10 +34,10 @@ void Acceptor::handleRead()
     struct sockaddr_in peerAddr;
     bzero(&peerAddr, sizeof peerAddr);
     socklen_t perrAddrlength = sizeof peerAddr;
-    
-    int connfd = accept4(sockfd_, (struct sockaddr*)&peerAddr, &perrAddrlength, SOCK_NONBLOCK | SOCK_CLOEXEC);
-    
-    if(connfd > 0)
+    int connfd; 
+    while((connfd = accept4(sockfd_,
+                            (struct sockaddr*)&peerAddr,
+                            &perrAddrlength, SOCK_NONBLOCK | SOCK_CLOEXEC)) > 0)
     {
         if(newConnectionCallback_ && connfd < MAXFDNUM)  //避免文件描述符耗尽
         {
@@ -48,8 +49,8 @@ void Acceptor::handleRead()
             close(connfd);
         }
     }
-    else
+    if(errno != EAGAIN)
     {
-        log_syserr("accept failed\n\r");
+        log_syserr("Acceptor: error!\n");
     }
 }
