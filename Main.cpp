@@ -12,7 +12,7 @@ using namespace std;
 int main()
 {
     EventLoop mainloop;
-    HttpSever http(&mainloop, 4);
+    HttpSever http(&mainloop, 3);
     mainloop.loop();
     return 0;
 }
