@@ -24,7 +24,7 @@ const std::string error_500_title = "Internal Error";
 const std::string error_500_form = "There was an unusual problem serving the requested file.\n";
 
 /* 网站根目录 */
-const char* doc_root = "/tmp/html";
+const char* doc_root = ".";
 
 struct HttpData
 {

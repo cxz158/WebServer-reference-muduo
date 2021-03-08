@@ -23,6 +23,7 @@
 #include <strings.h>
 #include <time.h>
 #include <signal.h>
+#include <stdlib.h>
 
 /* values */
 volatile int timerexpired=0;
@@ -50,6 +51,7 @@ char host[MAXHOSTNAMELEN];
 #define REQUEST_SIZE 2048
 char request[REQUEST_SIZE];
 
+bool keep_alive = false;
 static const struct option long_options[]=
 {
  {"force",no_argument,&force,1},
@@ -89,6 +91,7 @@ static void usage(void)
 	"  -p|--proxy <server:port> Use proxy server for request.\n"
 	"  -c|--clients <n>         Run <n> HTTP clients at once. Default one.\n"
 	"  -9|--http09              Use HTTP/0.9 style requests.\n"
+    "  -k|--keep-alive          Keep-Alive\n"
 	"  -1|--http10              Use HTTP/1.0 protocol.\n"
 	"  -2|--http11              Use HTTP/1.1 protocol.\n"
 	"  --get                    Use GET request method.\n"
@@ -111,7 +114,7 @@ int main(int argc, char *argv[])
           return 2;
  } 
 
- while((opt=getopt_long(argc,argv,"912Vfrt:p:c:?h",long_options,&options_index))!=EOF )
+ while((opt=getopt_long(argc,argv,"912Vfkrt:p:c:?h",long_options,&options_index))!=EOF )
  {
   switch(opt)
   {
@@ -121,6 +124,7 @@ int main(int argc, char *argv[])
    case '9': http10=0;break;
    case '1': http10=1;break;
    case '2': http10=2;break;
+   case 'k': keep_alive=true;break;
    case 'V': printf(PROGRAM_VERSION"\n");exit(0);
    case 't': benchtime=atoi(optarg);break;	     
    case 'p': 
@@ -159,7 +163,7 @@ int main(int argc, char *argv[])
  if(clients==0) clients=1;
  if(benchtime==0) benchtime=60;
  /* Copyright */
- fprintf(stderr,"Webbench - Simple Web Benchmark "PROGRAM_VERSION"\n"
+ fprintf(stderr,"Webbench - Simple Web Benchmark " PROGRAM_VERSION"\n"
 	 "Copyright (c) Radim Kolar 1997-2004, GPL Open Source Software.\n"
 	 );
  build_request(argv[optind]);
@@ -284,7 +288,12 @@ void build_request(const char *url)
 	  strcat(request,"Pragma: no-cache\r\n");
   }
   if(http10>1)
-	  strcat(request,"Connection: close\r\n");
+  {
+      if(keep_alive)
+            strcat(request,"Connetion: keep-alive\r\n");
+      else
+	        strcat(request,"Connection: close\r\n");
+  }
   /* add empty line at end */
   if(http10>0) strcat(request,"\r\n"); 
   // printf("Req=%s\n",request);

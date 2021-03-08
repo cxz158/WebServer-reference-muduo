@@ -2,6 +2,7 @@
 #include "CurrentThread.h"
 #include <assert.h>
 #include <iostream>
+#include <sys/prctl.h>
 
 const std::string defalut_thread_name = "defalut";
 //传递给线程的参数
@@ -24,6 +25,7 @@ struct ThreadData
         platch_ = nullptr;
         
         CurrentThread::t_threadName = name_.c_str();
+        prctl(PR_SET_NAME, CurrentThread::name());
         func_();
         CurrentThread::t_threadName = "finished";
     }

@@ -42,7 +42,7 @@ public:
     void setCloseCallback(const CloseCallback& cb){ closecallback_ = cb; }
     void send(const std::string& msg){ send(msg.c_str(), msg.size()); } 
     void send(const char* msg, size_t size);
-    SENDFILECODE sendFile(const char* filename);
+    /* SENDFILECODE sendFile(const char* filename); */
     struct sockaddr_in getPeerAddr(){ return peerAddr_; }
     struct sockaddr_in getLocalAddr(){ return localAddr_; }
     void shutdown();

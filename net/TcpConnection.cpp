@@ -176,19 +176,19 @@ void TcpConnection::connectDestroyed()
     loop_->removeChannel(*channel_);
 }
 
-SENDFILECODE TcpConnection::sendFile(const char* filename)
-{
-    struct stat file_stat;
-    if((stat(filename, &file_stat)) < 0)
-        return SENDFILECODE::NORESOURCE;    
-    else if(!(file_stat.st_mode & S_IROTH))
-        return SENDFILECODE::FORBIDDEN;
-    else if(S_ISDIR(file_stat.st_mode))
-        return SENDFILECODE::ISDIR;
-    int filefd = open(filename, O_RDONLY);
-    if(sendfile(sockfd_, filefd, nullptr, file_stat.st_size) == 0)
-        return SENDFILECODE::SUCCESS;
-    else
-        return SENDFILECODE::OTHREBAD;
-}
+/* SENDFILECODE TcpConnection::sendFile(const char* filename) */
+/* { */
+/*     struct stat file_stat; */
+/*     if((stat(filename, &file_stat)) < 0) */
+/*         return SENDFILECODE::NORESOURCE; */    
+/*     else if(!(file_stat.st_mode & S_IROTH)) */
+/*         return SENDFILECODE::FORBIDDEN; */
+/*     else if(S_ISDIR(file_stat.st_mode)) */
+/*         return SENDFILECODE::ISDIR; */
+/*     int filefd = open(filename, O_RDONLY); */
+/*     if(sendfile(sockfd_, filefd, nullptr, file_stat.st_size) == 0) */
+/*         return SENDFILECODE::SUCCESS; */
+/*     else */
+/*         return SENDFILECODE::OTHREBAD; */
+/* } */
 

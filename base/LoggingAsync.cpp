@@ -17,7 +17,7 @@ LoggingAsync::LoggingAsync(const std::string basename, int flushInterval)
     assert(basename.size() > 1);
     currentBuffer_->bzero();
     nextBuffer_->bzero();
-    buffers_.reserve(4);   //按照书上的说法，正常buffers中最多会存有三个BufferPtr，但muduo的源码中却申请的是16个单元，为什么？
+    buffers_.reserve(16);   //按照书上的说法，正常buffers中最多会存有三个BufferPtr，但muduo的源码中却申请的是16个单元，为什么？
 }
 
 

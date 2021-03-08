@@ -34,5 +34,5 @@ void FileUtil::flush() {fflush_unlocked(fp_);}
 
 size_t FileUtil::write(const char* logline, size_t len)
 {
-    return fwrite_unlocked(logline, 1, len, fp_); //仅有日志处理程序向文件中写入，可以使用unlock版本
+    return fwrite_unlocked(logline, sizeof(char), len, fp_); //仅有日志处理线程向文件中写入，可以使用unlock版本
 }

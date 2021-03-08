@@ -51,7 +51,7 @@ private:
     const int fd_;
     int events_;
     int revnets_;
-    std::weak_ptr<void> tie_;   //维系channel生命的纽带，避免channel在处理handlevent时不会被销毁
+    std::weak_ptr<void> tie_;   //，避免channel在处理handlevent时不会被销毁
 
     EventCallback readCallback_;
     EventCallback writeCallback_;

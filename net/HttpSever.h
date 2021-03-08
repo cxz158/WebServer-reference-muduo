@@ -31,7 +31,6 @@ private:
     HTTP_CODE parse_main(HttpData& httpdata, Buffer& buff, CHECK_STATE& checkstate);
     HTTP_CODE do_request(HttpData& httpdata); 
     /* void do_http(); */
-    void unmap();
 
     std::shared_ptr<TcpServer> tcpServer_;
     std::map<TcpConnectionPtr, TimerWptr> https_;

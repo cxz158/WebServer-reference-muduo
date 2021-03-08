@@ -22,6 +22,7 @@ TcpServer::TcpServer(EventLoop* loop, int ThreadNum, int port, std::string name)
       acceptor_(new Acceptor(loop_, port)),
       threadPool_(new EventLoopThreadPool(loop_, ThreadNum))
 {
+    ignore_sig_pipe();
     acceptor_->setNewConnectionCallback(std::bind(&TcpServer::newConnection,
                                                   this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));    
 }

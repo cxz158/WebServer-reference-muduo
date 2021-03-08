@@ -13,7 +13,7 @@
 #include <functional>
 #include <errno.h>
 
-int Acceptor::MAXFDNUM = 30000;
+int Acceptor::MAXFDNUM = 200000;
 
 Acceptor::Acceptor(EventLoop* loop, int port)
     : loop_(loop),
