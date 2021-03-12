@@ -13,37 +13,44 @@
 int Buffer::BUFFSIZE = 1024;
 
 //从文件描述符中读， 写入buffer
-int Buffer::readfd(int fd)
+bool Buffer::readfd(int fd)
 {
-    char extrabuf[65536];
-    struct iovec vec[2];
-    const size_t writeable = writeableBytes(); 
-
-    vec[0].iov_base = buffer_.data() + writeIndex_;
-    vec[0].iov_len = writeable;
-    vec[1].iov_base = extrabuf;
-    vec[1].iov_len = sizeof extrabuf;
-
-    const int n = readv(fd, vec, 2);
-    if(n < 0)
-        log_syserr("Buffer::readfd failed - \n");
-    else if( static_cast<size_t>(n) < writeable )
-        writeIndex_ += n;
-    else 
+    while(true)
     {
-        writeIndex_ += writeableBytes();
-        append(extrabuf, n - writeable);
+        char extrabuf[1024];
+        struct iovec vec[2];
+        const size_t writeable = writeableBytes(); 
+        vec[0].iov_base = buffer_.data() + writeIndex_;
+        vec[0].iov_len = writeable;
+        vec[1].iov_base = extrabuf;
+        vec[1].iov_len = sizeof extrabuf;
+        int n = readv(fd, vec, 2);
+
+        if(n == 0)
+            return true;
+        if(n < 0)
+        {
+            if(errno != EAGAIN)
+                log("Buffer::readfd error!\n");
+            break;
+        }
+        else if( static_cast<size_t>(n) < writeable ) //n > 0
+            writeIndex_ += n;
+        else 
+        {
+            writeIndex_ += writeableBytes();
+            append(extrabuf, n - writeable);
+        }
     }
-    return n;
+    return false;
 }
 
 void Buffer::append(const char* data, size_t len)
 {
-    if(writeableBytes() == 0)
-        std::copy(data, data+len, std::back_inserter(buffer_));
-    else
-        std::copy(data, data+len, buffer_.begin()+writeIndex_);
-    writeIndex_ = buffer_.size(); 
+    if(writeableBytes() < len)
+        buffer_.resize(buffer_.size() + len);
+    std::copy(data, data+len, buffer_.begin()+writeIndex_);
+    writeIndex_ += len; 
 }
 
 char* Buffer::findLine()
@@ -55,10 +62,19 @@ char* Buffer::findLine()
         return i.base();
 }
 
-inline
 void Buffer::init() {  
-    assert(writeIndex_ == readIndex_);
-    buffer_.resize(BUFFSIZE);
-    bzero(buffer_.data(), std::min(writeIndex_, BUFFSIZE));
-    writeIndex_ = readIndex_ = 0; 
+    if(writeIndex_ == readIndex_)
+    {
+        buffer_.resize(BUFFSIZE);
+        bzero(buffer_.data(), std::min(buffer_.size(),writeIndex_));
+        writeIndex_ = readIndex_ = checkInex_ = 0; 
+    }
+    else
+    {
+        int readable = readableBytes();
+        std::copy(buffer_.begin()+readIndex_, buffer_.begin()+writeIndex_,
+                  buffer_.begin());
+        readIndex_ = checkInex_ = 0;
+        writeIndex_ = readable;
+    }
 }

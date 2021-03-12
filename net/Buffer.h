@@ -22,7 +22,7 @@ class Buffer
 public:
     Buffer():buffer_(BUFFSIZE), writeIndex_(0), readIndex_(0), checkInex_(0){}
     ~Buffer(){}
-    int readfd(int fd);
+    bool readfd(int fd);
     void append(const char* data, size_t len);
     size_t readableBytes() const { return writeIndex_ - readIndex_; }
 
@@ -42,8 +42,8 @@ private:
     static int BUFFSIZE;
     size_t writeableBytes() const { return buffer_.size() - writeIndex_; }
     std::vector<char> buffer_;
-    int writeIndex_;
-    int readIndex_;
-    int checkInex_;
+    size_t writeIndex_;
+    size_t readIndex_;
+    size_t checkInex_;
 };
 

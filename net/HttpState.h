@@ -22,9 +22,10 @@ enum class LINE_STATUS{
 
 /* http解析结果 */
 enum class HTTP_CODE{
-    NO_REQUEST,         //请求不完整
+    NO_REQUEST,         //404
     GET_REQUEST,        //获得一个完整的请求
     BAD_REQUEST,        //获得一个错误的请求
+    OPEN_REQUEST,       //请求还不完整
     FORBIDDEN_REQUEST,  //权限不足
     INTERNAL_ERROR,     //系统错误
     FILE_REQUEST,       //请求文件

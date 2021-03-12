@@ -28,7 +28,7 @@ public:
     ~TcpServer(){};
 
     //这两Function将传递给TcpConnection
-    /* void setConnectionCallback(const ConnectionCallback& cb) { connectionCallback_ = cb; } */ //暂未使用
+    void setConnectionCallback(const ConnectionCallback& cb) { connectionCallback_ = cb; }
     void setMessageCallback(const MessageCallback& cb) { messageCallback_ = cb; }
     void removeConn(const TcpConnectionPtr& conn);
 
@@ -43,7 +43,7 @@ private:
     unsigned nextId_;
     std::shared_ptr<Acceptor> acceptor_;
     ConnectionMap connections_;
-    /* ConnectionCallback connectionCallback_; */
+    ConnectionCallback connectionCallback_;
     MessageCallback messageCallback_;
     std::unique_ptr<EventLoopThreadPool> threadPool_;
 };

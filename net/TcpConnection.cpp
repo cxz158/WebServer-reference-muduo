@@ -37,7 +37,7 @@ void TcpConnection::connectEstablished()
     loop_->assertInLoopThread();
     assert(state_ == kConnecting);
     setState(kConnected);
-    log("[%s] accept conn [%s]\n", CurrentThread::name(), name_.c_str());
+    /* log("[%s] accept conn [%s]\n", CurrentThread::name(), name_.c_str()); */
     channel_->tie(shared_from_this());
     channel_->enableReading();
     channel_->enableWriting();
@@ -47,7 +47,7 @@ void TcpConnection::connectEstablished()
 TcpConnection::~TcpConnection()
 {
     assert(state_ == kDisconnected);
-    log("[%s] TcpConnection destory\n",name_.c_str());
+    /* log("[%s] TcpConnection destory\n",name_.c_str()); */
     close(sockfd_);
 }
 
@@ -76,17 +76,12 @@ void TcpConnection::shutdown()
 
 void TcpConnection::handleRead()
 {
-    int n = inbuffer.readfd(sockfd_); //readfd() 缓冲区足够大，能够保证一次读完，无需循环调用
-    if( n > 0 )
-    {
+    bool zero;
+    zero = inbuffer.readfd(sockfd_); //readfd() 缓冲区足够大，能够保证一次读完，无需循环调用
+    if(!zero)
         messageCallback_(shared_from_this(), &inbuffer);
-    }
-    else if(n == 0){
+    else
         handleClose();
-    }
-    else{
-        log_syserr("[%s]TcpConnection::handleRead error!\n",name_.c_str());
-    }
 }
 
 
@@ -102,6 +97,7 @@ void TcpConnection::handleWrite()
             outbuffer.retrive(n);
             if(outbuffer.readableBytes() == 0) //缓冲区buffer 中可读数据为0，取消对EPOLLOUT 事件的关注
             {
+                outbuffer.init();
                 log("[%s]message send complete\n",name_.c_str());
                 if(state_ == kDisconnecting)  //如果打算关闭，就可以shutdown了接下来就交给TCP协议栈
                     shutdownInLoop();
@@ -118,12 +114,13 @@ void TcpConnection::handleWrite()
 void TcpConnection::handleClose()
 {
     loop_->assertInLoopThread();
-    if(state_ != kDisconnected)
-    {
-         setState(kDisconnected);
-         log("[%s] TcpConnection::handleClose [%s]\n",CurrentThread::name(), name_.c_str());
-         closecallback_(shared_from_this());
-    }
+    assert(state_ == kConnected || state_ == kDisconnecting);
+    setState(kDisconnected);
+    loop_->removeChannel(*channel_);
+    /* log("[%s] TcpConnection::handleClose [%s]\n",CurrentThread::name(), name_.c_str()); */
+    TcpConnectionPtr guard(shared_from_this());
+    connectionCallback_(guard);
+    closecallback_(guard);
 }
 
 
@@ -131,7 +128,6 @@ void TcpConnection::handleError()
 {
     loop_->assertInLoopThread();
     log_syserr("TcpConnection::handleError [%s]\n",name_.c_str());
-    handleClose();
 }
 
 void TcpConnection::sendInLoop(const char* msg, size_t len)
@@ -158,6 +154,7 @@ void TcpConnection::sendInLoop(const char* msg, size_t len)
     if(writen < len)
     {
         outbuffer.append(msg + writen, len-writen);
+        handleWrite();
     }
 }
 
@@ -173,22 +170,28 @@ void TcpConnection::shutdownInLoop()
 void TcpConnection::connectDestroyed()
 {
     loop_->assertInLoopThread();
-    loop_->removeChannel(*channel_);
+    if(state_ == kConnected)
+    {
+        setState(kDisconnected);
+        loop_->removeChannel(*channel_);
+        connectionCallback_(shared_from_this());
+    }
 }
 
-/* SENDFILECODE TcpConnection::sendFile(const char* filename) */
-/* { */
-/*     struct stat file_stat; */
-/*     if((stat(filename, &file_stat)) < 0) */
-/*         return SENDFILECODE::NORESOURCE; */    
-/*     else if(!(file_stat.st_mode & S_IROTH)) */
-/*         return SENDFILECODE::FORBIDDEN; */
-/*     else if(S_ISDIR(file_stat.st_mode)) */
-/*         return SENDFILECODE::ISDIR; */
-/*     int filefd = open(filename, O_RDONLY); */
-/*     if(sendfile(sockfd_, filefd, nullptr, file_stat.st_size) == 0) */
-/*         return SENDFILECODE::SUCCESS; */
-/*     else */
-/*         return SENDFILECODE::OTHREBAD; */
-/* } */
+void TcpConnection::forceClose()
+{
+  if (state_ == kConnected || state_ == kDisconnecting)
+  {
+    setState(kDisconnecting);
+    loop_->queueInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
+  }
+}
 
+void TcpConnection::forceCloseInLoop()
+{
+  loop_->assertInLoopThread();
+  if (state_ == kConnected || state_ == kDisconnecting)
+  {
+    handleClose();
+  }
+}

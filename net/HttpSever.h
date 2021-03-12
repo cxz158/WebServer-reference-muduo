@@ -30,9 +30,14 @@ private:
     HTTP_CODE parse_request_content(HttpData& httpdata, Buffer& buff);
     HTTP_CODE parse_main(HttpData& httpdata, Buffer& buff, CHECK_STATE& checkstate);
     HTTP_CODE do_request(HttpData& httpdata); 
+
+    void removeHttpConn(const TcpConnectionPtr& conn)
+    {
+        https_.erase(conn->name());
+    }
     /* void do_http(); */
 
     std::shared_ptr<TcpServer> tcpServer_;
-    std::map<TcpConnectionPtr, TimerWptr> https_;
+    std::map<std::string, TimerWptr> https_;
 };
 

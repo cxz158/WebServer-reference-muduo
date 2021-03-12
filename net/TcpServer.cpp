@@ -35,7 +35,7 @@ void TcpServer::newConnection(int connfd, const struct sockaddr_in& localAddr, c
     EventLoop* ioLoop = threadPool_->getNextLoop();
     auto conn = std::make_shared<TcpConnection>(ioLoop, connName, connfd, localAddr, peerAddr);
     connections_[connName] = conn;
-    /* conn->setConnectionCallback(connectionCallback_); */
+    conn->setConnectionCallback(connectionCallback_);
     conn->setMessageCallback(messageCallback_);
     conn->setCloseCallback(std::bind(&TcpServer::removeConn, this, std::placeholders::_1));
     ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));  
@@ -50,9 +50,7 @@ void TcpServer::removeConnInLoop(const TcpConnectionPtr& conn)
 {
     loop_->assertInLoopThread();
     int ret = connections_.erase(conn->name());
-    if(ret == 1)
-    {
-        EventLoop* ioLoop = conn->getLoop();
-        ioLoop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn)); //conn 会存活到退出该函数。 
-    }
+    assert(ret == 1);(void)ret;
+    EventLoop* ioLoop = conn->getLoop();
+    ioLoop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn)); //conn 会存活到退出该函数。 
 }

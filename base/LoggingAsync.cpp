@@ -17,7 +17,7 @@ LoggingAsync::LoggingAsync(const std::string basename, int flushInterval)
     assert(basename.size() > 1);
     currentBuffer_->bzero();
     nextBuffer_->bzero();
-    buffers_.reserve(16);   //按照书上的说法，正常buffers中最多会存有三个BufferPtr，但muduo的源码中却申请的是16个单元，为什么？
+    buffers_.reserve(16); 
 }
 
 
@@ -47,8 +47,7 @@ void LoggingAsync::append(const std::string& logline)
     }
 }
 
-// linya的WebServer源码 和muduo 中对这里while都只进行了running 的判断，但我测试log的时候,发现
-//日志不能很好的写入文件，发生了race comption，设想：
+//muduo 中对这里while都只进行了running 的判断,实际使用时主动stop(),最后一部分的日志会无法写入文件
 //1.程序在进行到while循环前就提前stop()了，此时running_会被置为false,结果当前currentBuffer_中的数据就没能成功的写入
 //2.日志线程执行到临界区外后,主线程append(),然后stop()异步日志,此时currentBuffer_ 中的数据会也无法写入日志
 void LoggingAsync::threadFunc()
@@ -61,7 +60,7 @@ void LoggingAsync::threadFunc()
     BufferPtr newBuffer2(new Buffer);
     BufferVector buffersToWrite;
     buffersToWrite.reserve(4);
-    while(running_ || !currentBuffer_->empty())
+    while(running_)
     {
         //临界区，取出要写的数据，交换buffer
         {
