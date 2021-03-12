@@ -22,7 +22,7 @@ long delay_expiredTime(int delay)
 Timer::Timer(CallBack callback, int interval)
     : expiredTime_(delay_expiredTime(interval)),
       timeoutCallBack_(callback),
-      abled_(true)
+      active_(true)
 {  }
 
 int create_timerfd()
@@ -73,13 +73,18 @@ void TimerQueue::handleRead()
     struct timeval now;
     gettimeofday(&now, nullptr);
     long long curTime = now.tv_sec * 1000 + now.tv_usec / 1000;
-    while(!Timers_.empty() && Timers_.top()->get_expiredTime() < curTime)
+    while(!Timers_.empty() )
     {
-        if(Timers_.top()->abled())
+        if(Timers_.top()->actived())
         {
             Timers_.top()->run();
         }
-        Timers_.pop();
+        else if(Timers_.top()->get_expiredTime() < curTime)
+        {
+            Timers_.top()->run();
+            Timers_.pop();
+        }
+        else break;
     }
 }
 

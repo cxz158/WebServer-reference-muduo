@@ -2,15 +2,16 @@ cmake_minimum_required(VERSION 2.8.9)
 
 project(WebServer)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -std=c++11 -D_PTHREADS -Wno-unused-parameter")
 
-set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -g -O0 -Wall -std=c++11 -D_PTHREADS -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -O0")
 
-set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O2 -Wall -std=c++11 -D_PTHREADS -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O2 ")
 
 add_subdirectory(base)
 add_subdirectory(net)
 
-add_executable(WebServer Main.cpp)
+add_executable(WebServer_cxz Main.cpp)
 
-target_link_libraries(WebServer libserver_base libserver_net)
+target_link_libraries(WebServer_cxz libserver_base libserver_net)
 

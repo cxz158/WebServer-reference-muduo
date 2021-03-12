@@ -29,13 +29,13 @@ public:
     
     long get_expiredTime() const { return expiredTime_; }
 
-    void disabled() { abled_ = false; }
-    bool abled() { return abled_; }
+    void disabled() { active_ = false; }
+    bool actived() { return active_; }
     
 private:
     long expiredTime_;      //定时器过期时间,绝对时间
     CallBack timeoutCallBack_;
-    bool abled_;
+    bool active_;
 };
 
 class Timerlarger
