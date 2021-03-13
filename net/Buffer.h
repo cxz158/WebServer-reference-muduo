@@ -25,6 +25,7 @@ public:
     bool readfd(int fd);
     void append(const char* data, size_t len);
     size_t readableBytes() const { return writeIndex_ - readIndex_; }
+    size_t writeableBytes() const { return buffer_.size() - writeIndex_; }
 
     const char* readbegin() const { return buffer_.data() + readIndex_; }
     const char* readend() const { return buffer_.data() + writeIndex_; }
@@ -40,7 +41,6 @@ public:
 
 private:
     static int BUFFSIZE;
-    size_t writeableBytes() const { return buffer_.size() - writeIndex_; }
     std::vector<char> buffer_;
     size_t writeIndex_;
     size_t readIndex_;

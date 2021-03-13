@@ -1,6 +1,7 @@
 #pragma once
 #include "../base/noncopyable.h"
 #include <functional>
+#include <sys/epoll.h>
 #include <memory>
 #include <assert.h>
 
@@ -38,6 +39,8 @@ public:
     void enableReading() { events_ |= kReadEvent; }
     void enableWriting() { events_  |= kWriteEvent; }
     void disableAll() { events_ = kNoneEvent; }
+    void disableReading() { events_ &= ~EPOLLIN; }
+    void disableWriting() { events_ &= ~EPOLLOUT; }
     EventLoop* ownerLoop() { return loop_; }
 
 private: 

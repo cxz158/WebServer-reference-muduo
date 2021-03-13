@@ -47,18 +47,18 @@ struct HttpData
         bzero(m_real_file, sizeof m_real_file);
     }
 
-    void init()
-    {
-        m_mthod = METHOD::GET;
-        m_url = nullptr;
-        bzero(m_real_file, sizeof m_real_file);
-        m_response.clear();
-        unmap();
-        m_version = nullptr;
-        m_host = nullptr;
-        m_content_length = 0;
-        m_linger = false;
-    }
+/*     void init() */
+/*     { */
+/*         m_mthod = METHOD::GET; */
+/*         m_url = nullptr; */
+/*         bzero(m_real_file, sizeof m_real_file); */
+/*         m_response.clear(); */
+/*         unmap(); */
+/*         m_version = nullptr; */
+/*         m_host = nullptr; */
+/*         m_content_length = 0; */
+/*         m_linger = false; */
+/*     } */
 
     void unmap()
     {
@@ -147,25 +147,32 @@ bool do_response(HttpData& httpdata, HTTP_CODE ret)
 void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
 {
     /* log("%s\n%s", get_time().c_str(), buff->readbegin()); */
-    HttpData httpdata;
+    bool keepAlive = false;
     //存在buff中的最后只有半个请求的情况，
     char* compeletindex = nullptr;
     while(buff->readableBytes())
     {
+        HttpData httpdata;
         compeletindex = buff->readbegin();
         CHECK_STATE checksatte = CHECK_STATE::CHECK_STATE_REQUESTLINE;
         HTTP_CODE ret = parse_main(httpdata, *buff, checksatte);
+        if(httpdata.m_linger)
+            keepAlive = true;
         if(!do_response(httpdata, ret)) //剩余数据无法组成一个完整的请求无法继续解析
         {
              buff->retrive_to(compeletindex);
-             return;
+             break;
         }
         conn->send(httpdata.m_response);
         if(ret == HTTP_CODE::FILE_REQUEST)
         {
             conn->send(httpdata.m_file_address, httpdata.m_file_size);
         }
-        httpdata.init();
+    }
+    if(!keepAlive)
+    {
+        conn->shutdown();
+        return;
     }
     buff->init();
     auto it = https_.find(conn->name());
@@ -177,15 +184,9 @@ void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
         if(stimer)
             stimer->disabled(); 
     }
-
-    if(httpdata.m_linger == true)
-    {
-        wtimer = conn->getLoop()->addTimer(std::bind(&TcpConnection::shutdown,conn),
-                                           HttpData::KEEPALIVE_TIME); 
-        https_[conn->name()] = wtimer;
-    }
-    else 
-        conn->shutdown();
+    wtimer = conn->getLoop()->addTimer(std::bind(&TcpConnection::forceClose,conn),
+                                       HttpData::KEEPALIVE_TIME); 
+    https_[conn->name()] = wtimer;
 }
 
 //判断即将解析的一行数据是否符合http规范，以\r\n结尾
@@ -266,7 +267,7 @@ HTTP_CODE HttpSever::parse_request_header(HttpData& httpdata, Buffer& buff,
     {
         text += 11;
         text += strspn(text, " \t");
-        if(strcasecmp(text, "keep-alive") == 0)
+        if((strcasecmp(text, "keep-alive") == 0) || (strcasecmp(text, "Keep-Alive") == 0))
             httpdata.m_linger = true;
     }
     //请求体的长度是多少
@@ -372,6 +373,4 @@ HTTP_CODE HttpSever::do_request(HttpData& httpdata)
     close(filefd);
     return HTTP_CODE::FILE_REQUEST;
 }
-
-
 

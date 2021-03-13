@@ -77,7 +77,12 @@ void TcpConnection::shutdown()
 void TcpConnection::handleRead()
 {
     bool zero;
-    zero = inbuffer.readfd(sockfd_); //readfd() 缓冲区足够大，能够保证一次读完，无需循环调用
+    zero = inbuffer.readfd(sockfd_); 
+    /* if(inbuffer.writeableBytes() == 0) */
+    /* { */
+    /*     channel_->disableReading(); */
+    /*     loop_->updateChannel(*channel_); */
+    /* } */
     if(!zero)
         messageCallback_(shared_from_this(), &inbuffer);
     else
@@ -98,6 +103,8 @@ void TcpConnection::handleWrite()
             if(outbuffer.readableBytes() == 0) //缓冲区buffer 中可读数据为0，取消对EPOLLOUT 事件的关注
             {
                 outbuffer.init();
+                /* channel_->enableReading(); */
+                /* loop_->updateChannel(*channel_); */
                 log("[%s]message send complete\n",name_.c_str());
                 if(state_ == kDisconnecting)  //如果打算关闭，就可以shutdown了接下来就交给TCP协议栈
                     shutdownInLoop();
@@ -110,10 +117,10 @@ void TcpConnection::handleWrite()
     }
 }
 
-
 void TcpConnection::handleClose()
 {
     loop_->assertInLoopThread();
+    handelcose ++; 
     assert(state_ == kConnected || state_ == kDisconnecting);
     setState(kDisconnected);
     loop_->removeChannel(*channel_);

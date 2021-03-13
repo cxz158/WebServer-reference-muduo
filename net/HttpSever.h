@@ -33,6 +33,11 @@ private:
 
     void removeHttpConn(const TcpConnectionPtr& conn)
     {
+        tcpServer_->getLoop()->runInLoop(std::bind(&HttpSever::removeHttpConnInLoop,
+                                                   this, conn));    
+    }
+    void removeHttpConnInLoop(const TcpConnectionPtr& conn)
+    {
         https_.erase(conn->name());
     }
     /* void do_http(); */

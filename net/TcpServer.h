@@ -31,6 +31,7 @@ public:
     void setConnectionCallback(const ConnectionCallback& cb) { connectionCallback_ = cb; }
     void setMessageCallback(const MessageCallback& cb) { messageCallback_ = cb; }
     void removeConn(const TcpConnectionPtr& conn);
+    EventLoop* getLoop(){ return loop_; }
 
 private:
     using ConnectionMap = std::map<std::string, TcpConnectionPtr>;

@@ -57,6 +57,7 @@ private:
     void shutdownInLoop();
     void forceCloseInLoop();
 
+    int handelcose = 0;
     EventLoop* loop_;
     std::string name_;
     StateE state_;

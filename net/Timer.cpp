@@ -8,7 +8,7 @@
 #include "EventLoop.h"
 #include <cstdio>
 
-const int TIMERINTERVAL = 3;  //s timerfd 被唤醒的时间间隔
+const int TIMERINTERVAL = 1;  //s timerfd 被唤醒的时间间隔
 
 inline
 long delay_expiredTime(int delay)
@@ -73,14 +73,16 @@ void TimerQueue::handleRead()
     struct timeval now;
     gettimeofday(&now, nullptr);
     long long curTime = now.tv_sec * 1000 + now.tv_usec / 1000;
-    while(!Timers_.empty() )
+    while(!Timers_.empty())
     {
-        if(Timers_.top()->actived())
+        log("timerqueue's num = %d",Timers_.size());
+        if(!Timers_.top()->actived())
         {
-            Timers_.top()->run();
+            Timers_.pop();
         }
         else if(Timers_.top()->get_expiredTime() < curTime)
         {
+            log("timeout!\n");
             Timers_.top()->run();
             Timers_.pop();
         }

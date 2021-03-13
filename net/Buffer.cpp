@@ -17,7 +17,7 @@ bool Buffer::readfd(int fd)
 {
     while(true)
     {
-        char extrabuf[1024];
+        char extrabuf[65535];
         struct iovec vec[2];
         const size_t writeable = writeableBytes(); 
         vec[0].iov_base = buffer_.data() + writeIndex_;
@@ -48,7 +48,7 @@ bool Buffer::readfd(int fd)
 void Buffer::append(const char* data, size_t len)
 {
     if(writeableBytes() < len)
-        buffer_.resize(buffer_.size() + len);
+        buffer_.resize(writeIndex_ + len);
     std::copy(data, data+len, buffer_.begin()+writeIndex_);
     writeIndex_ += len; 
 }
@@ -65,7 +65,6 @@ char* Buffer::findLine()
 void Buffer::init() {  
     if(writeIndex_ == readIndex_)
     {
-        buffer_.resize(BUFFSIZE);
         bzero(buffer_.data(), std::min(buffer_.size(),writeIndex_));
         writeIndex_ = readIndex_ = checkInex_ = 0; 
     }
