@@ -156,14 +156,15 @@ void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
         compeletindex = buff->readbegin();
         CHECK_STATE checksatte = CHECK_STATE::CHECK_STATE_REQUESTLINE;
         HTTP_CODE ret = parse_main(httpdata, *buff, checksatte);
-        if(httpdata.m_linger)
-            keepAlive = true;
-        if(!do_response(httpdata, ret)) //剩余数据无法组成一个完整的请求无法继续解析
+        if(ret == HTTP_CODE::OPEN_REQUEST)  //剩余数据无法组成一个完整的请求无法继续解析
+
         {
              buff->retrive_to(compeletindex);
              break;
         }
-        conn->send(httpdata.m_response);
+        if(httpdata.m_linger)
+            keepAlive = true;
+        do_response(httpdata, ret);         conn->send(httpdata.m_response);
         if(ret == HTTP_CODE::FILE_REQUEST)
         {
             conn->send(httpdata.m_file_address, httpdata.m_file_size);
@@ -303,7 +304,7 @@ HTTP_CODE HttpSever::parse_request_content(HttpData& httpdata, Buffer& buff)
 HTTP_CODE HttpSever::parse_main(HttpData& httpdata, Buffer& buff, CHECK_STATE& checkstate)
 {
     LINE_STATUS line_status = LINE_STATUS::LINE_OK;
-    HTTP_CODE retcode = HTTP_CODE::NO_REQUEST;
+    HTTP_CODE retcode = HTTP_CODE::OPEN_REQUEST;
     while((checkstate ==CHECK_STATE::CHECK_STATE_CONTENT && line_status == LINE_STATUS::LINE_OK)
           || ((line_status = parse_line(buff)) == LINE_STATUS::LINE_OK))
     {
