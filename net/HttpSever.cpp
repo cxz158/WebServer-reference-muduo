@@ -164,7 +164,8 @@ void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
         }
         if(httpdata.m_linger)
             keepAlive = true;
-        do_response(httpdata, ret);         conn->send(httpdata.m_response);
+        do_response(httpdata, ret);
+        conn->send(httpdata.m_response);
         if(ret == HTTP_CODE::FILE_REQUEST)
         {
             conn->send(httpdata.m_file_address, httpdata.m_file_size);

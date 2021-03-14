@@ -38,6 +38,7 @@ private:
     }
     void removeHttpConnInLoop(const TcpConnectionPtr& conn)
     {
+        tcpServer_->getLoop()->assertInLoopThread(); 
         https_.erase(conn->name());
     }
     /* void do_http(); */
