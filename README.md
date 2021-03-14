@@ -1,6 +1,6 @@
 # WebServer-reference-muduo
 # 简介
-本项目是由C++11编写的一个静态web服务器，能够解析GET请求,参考了陈硕大佬的muduo网络库，linya的WebServer和游双的《Linux高性能服务器编程》。支持http长连接，并且实现了异步日志。在本机上使用webbench并发
+本项目是由C++11编写的一个静态web服务器，能够解析GET请求，参考了陈硕大佬的muduo网络库，linya的WebServer和游双的《Linux高性能服务器编程》。支持http长连接，并且实现了异步日志。在本机上使用webbench并发
 1000个clients访问, 短连接能达到大概1.7wQPS 长连接能达到大概4wQPS（这个数值有待商确）。
 # Usage
 ```
