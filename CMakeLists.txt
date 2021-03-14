@@ -12,7 +12,6 @@ set(CXX_FLAGS
     -Wno-unused-parameter
 )
 
-
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
