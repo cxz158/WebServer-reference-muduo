@@ -7,6 +7,7 @@
 mkdir build
 cd build
 cmake ..
+make
 
 ```
 # 项目设计
