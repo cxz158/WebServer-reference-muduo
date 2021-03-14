@@ -29,5 +29,8 @@ cmake ..
 - 负载情况（短连接）
 ![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzwebcup%E8%B4%9F%E8%BD%BD.png)
 
+- 负载情况（长连接）
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cpu%E8%B4%9F%E8%BD%BD%E9%95%BF%E8%BF%9E%E6%8E%A5.png)
+
 - linyaWeb长连接测试
 ![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/linyaweb%E6%B5%8B%E8%AF%95%E9%95%BF%E8%BF%9E%E6%8E%A5.png)
