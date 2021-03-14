@@ -14,10 +14,11 @@ cmake ..
 项目使用基于对象的设计，而非面向对象的设计，大量使用std::bind来代替虚函数。
 # 项目测试
 短连接测试
-[https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E6%B5%8B%E8%AF%95%E7%9F%AD%E8%BF%9E%E6%8E%A5.png]
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E6%B5%8B%E8%AF%95%E7%9F%AD%E8%BF%9E%E6%8E%A5.png)
+ 
 长连接测试
-[https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E6%B5%8B%E8%AF%95%E9%95%BF%E8%BF%9E%E6%8E%A5.png]
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E6%B5%8B%E8%AF%95%E9%95%BF%E8%BF%9E%E6%8E%A5.png)
 负载情况
-[https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzwebcup%E8%B4%9F%E8%BD%BD.png]
+[image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzwebcup%E8%B4%9F%E8%BD%BD.png)
 linyaWeb长连接测试
-[https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/linyaweb%E6%B5%8B%E8%AF%95%E9%95%BF%E8%BF%9E%E6%8E%A5.png]
+[image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/linyaweb%E6%B5%8B%E8%AF%95%E9%95%BF%E8%BF%9E%E6%8E%A5.png)
