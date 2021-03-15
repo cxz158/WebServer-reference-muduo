@@ -1,15 +1,8 @@
 cmake_minimum_required(VERSION 2.8.9)
 
-project(WebServer)
+project(WebServer_cxz)
 
-set(CXX_FLAGS -Wall -std=c++11 -D_PTHREADS -Wno-unused-parameter)
-
-set(CXX_FLAGS
-    -g
-    -Wall
-    -std=c++11
-    -D_PTHREADS
-    -Wno-unused-parameter
+set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -D_PTHREADS -Wno-unused-parameter"
 )
 
 set(CMAKE_CXX_COMPILER "g++")

@@ -33,17 +33,13 @@ private:
 
     void removeHttpConn(const TcpConnectionPtr& conn)
     {
-        tcpServer_->getLoop()->runInLoop(std::bind(&HttpSever::removeHttpConnInLoop,
-                                                   this, conn));    
-    }
-    void removeHttpConnInLoop(const TcpConnectionPtr& conn)
-    {
-        tcpServer_->getLoop()->assertInLoopThread(); 
+        MutexLockGuard lock(mutex_);
         https_.erase(conn->name());
     }
     /* void do_http(); */
 
     std::shared_ptr<TcpServer> tcpServer_;
+    MutexLock mutex_;
     std::map<std::string, TimerWptr> https_;
 };
 

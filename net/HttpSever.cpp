@@ -19,6 +19,7 @@ const char* error_400_form = "Your request has bad syntax or is inherently impos
 const char* error_403_title = "Forbidden";
 const char* error_403_form = "You do not have permission to get file from this server.\n";
 const char* error_404_title = "Not Found";
+/* const char* error_404_form = "hello world!\n"; */
 const char* error_404_form = "The request file was not found on this sever.\n";
 const char* error_500_title = "Internal Error";
 const char* error_500_form = "There was an unusual problem serving the requested file.\n";
@@ -77,7 +78,8 @@ struct HttpData
 };
 
 HttpSever::HttpSever(EventLoop* loop, int threadNum, int port, std::string name)
-    : tcpServer_(new TcpServer(loop, threadNum, port, name))
+    : tcpServer_(new TcpServer(loop, threadNum, port, name)),
+      mutex_()
 {
     tcpServer_->setMessageCallback(std::bind(&HttpSever::onMessage, this,
                                              std::placeholders::_1, std::placeholders::_2));
@@ -157,7 +159,6 @@ void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
         CHECK_STATE checksatte = CHECK_STATE::CHECK_STATE_REQUESTLINE;
         HTTP_CODE ret = parse_main(httpdata, *buff, checksatte);
         if(ret == HTTP_CODE::OPEN_REQUEST)  //剩余数据无法组成一个完整的请求无法继续解析
-
         {
              buff->retrive_to(compeletindex);
              break;
@@ -188,7 +189,10 @@ void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
     }
     wtimer = conn->getLoop()->addTimer(std::bind(&TcpConnection::forceClose,conn),
                                        HttpData::KEEPALIVE_TIME); 
-    https_[conn->name()] = wtimer;
+    {
+        MutexLockGuard lock(mutex_);
+        https_[conn->name()] = wtimer;
+    }
 }
 
 //判断即将解析的一行数据是否符合http规范，以\r\n结尾
@@ -358,6 +362,7 @@ HTTP_CODE HttpSever::do_request(HttpData& httpdata)
     strcpy(httpdata.m_real_file, doc_root);
     int len = strlen(doc_root);
     strncpy(httpdata.m_real_file+ len, httpdata.m_url, httpdata.FILENAME_LEN - len -1);
+
     struct stat file_stat;
     if((stat(httpdata.m_real_file, &file_stat)) < 0)
         return HTTP_CODE::NO_REQUEST;

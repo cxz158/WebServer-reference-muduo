@@ -30,8 +30,9 @@ TcpServer::TcpServer(EventLoop* loop, int ThreadNum, int port, std::string name)
 void TcpServer::newConnection(int connfd, const struct sockaddr_in& localAddr, const struct sockaddr_in& peerAddr)
 {
     loop_->assertInLoopThread();
-    std::string connName = name_ + format_string(" conn#%d",nextId_++); log("%sTcpServer::newConnection [%s] - new connection [%s] from %s\n", get_time().c_str(),  name_.c_str(), connName.c_str(), sock_ntop_ipv4(peerAddr).c_str());
-
+    std::string connName = name_ + format_string(" conn#%d",nextId_++); 
+    /* log("%sTcpServer::newConnection [%s] - new connection [%s] from %s\n", */
+    /*     get_time().c_str(),  name_.c_str(), connName.c_str(), sock_ntop_ipv4(peerAddr).c_str()); */
     EventLoop* ioLoop = threadPool_->getNextLoop();
     auto conn = std::make_shared<TcpConnection>(ioLoop, connName, connfd, localAddr, peerAddr);
     connections_[connName] = conn;
