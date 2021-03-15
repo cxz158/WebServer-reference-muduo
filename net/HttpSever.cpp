@@ -151,18 +151,18 @@ void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
     /* log("%s\n%s", get_time().c_str(), buff->readbegin()); */
     bool keepAlive = false;
     //存在buff中的最后只有半个请求的情况，
-    char* compeletindex = nullptr;
-    while(buff->readableBytes())
-    {
+    /* char* compeletindex = nullptr; */
+    /* while(buff->readableBytes()) */
+    /* { */
         HttpData httpdata;
-        compeletindex = buff->readbegin();
+        /* compeletindex = buff->readbegin(); */
         CHECK_STATE checksatte = CHECK_STATE::CHECK_STATE_REQUESTLINE;
         HTTP_CODE ret = parse_main(httpdata, *buff, checksatte);
-        if(ret == HTTP_CODE::OPEN_REQUEST)  //剩余数据无法组成一个完整的请求无法继续解析
-        {
-             buff->retrive_to(compeletindex);
-             break;
-        }
+        /* if(ret == HTTP_CODE::OPEN_REQUEST)  //剩余数据无法组成一个完整的请求无法继续解析 */
+        /* { */
+        /*      buff->retrive_to(compeletindex); */
+        /*      break; */
+        /* } */
         if(httpdata.m_linger)
             keepAlive = true;
         do_response(httpdata, ret);
@@ -171,7 +171,7 @@ void HttpSever::onMessage(const TcpConnectionPtr& conn, Buffer* buff)
         {
             conn->send(httpdata.m_file_address, httpdata.m_file_size);
         }
-    }
+    /* } */
     if(!keepAlive)
     {
         conn->shutdown();
