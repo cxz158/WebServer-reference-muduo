@@ -20,16 +20,19 @@ make
  - 关于负载情况，短连接测试下mainloop(webserver)会占用一定cpu，而长连接下则基本不占用，这是因为短连接测试需要频繁的accept和close连接，而长连接不需要，这也是其处理能力更强的原因。
 
 - 短连接测试
-![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E6%B5%8B%E8%AF%95%E7%9F%AD%E8%BF%9E%E6%8E%A5.png)
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E7%9F%AD%E8%BF%9E%E6%8E%A5%E6%B5%8B%E8%AF%95.png)
  
 - 长连接测试
-![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E6%B5%8B%E8%AF%95%E9%95%BF%E8%BF%9E%E6%8E%A5.png)
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzweb%E9%95%BF%E8%BF%9E%E6%8E%A5%E6%B5%8B%E8%AF%95.png)
 
 - 负载情况（短连接）
-![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cxzwebcup%E8%B4%9F%E8%BD%BD.png)
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cpu%E8%B4%9F%E8%BD%BD%E7%9F%AD%E8%BF%9E%E6%8E%A5.png)
 
 - 负载情况（长连接）
 ![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/cpu%E8%B4%9F%E8%BD%BD%E9%95%BF%E8%BF%9E%E6%8E%A5.png)
 
+- linyaWeb短连接测试
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/linyaweb%E7%9F%AD%E8%BF%9E%E6%8E%A5.png)
+
 - linyaWeb长连接测试
-![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/linyaweb%E6%B5%8B%E8%AF%95%E9%95%BF%E8%BF%9E%E6%8E%A5.png)
+![image](https://github.com/cxz158/WebServer-reference-muduo/blob/main/img/linyaweb%E9%95%BF%E8%BF%9E%E6%8E%A5%E6%B5%8B%E8%AF%95.png)
