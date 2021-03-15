@@ -14,6 +14,7 @@ make
 一个mainloop负责接受连接，然后将连接交给线程池中的loopthread处理，loopthread全权负责接受到的连接，即同时负责接受数据，对数据进行处理和发送数据。
 - 项目使用基于对象的设计，而非面向对象的设计，大量使用std::bind来代替虚函数。
 - 项目使用的是epoll的ET触发模式，因为一个连接的数据始终只由接管它的io线程负责，所以没有设置EPOLLONESHOT,如果要新增线程池用于计算数据的话，考虑到数据争议的问题需要添加EPOLLONESHOT
+- 服务器需要定时关闭长时间不活跃的连接，对此本项目使用一个timerfd加一个最小堆实现的。timerfd定时被唤醒,eventloop会处理其handleRead()，handleRead()会去除堆中已经disable并执行那些未disable且超时的timer,直到堆为空或下一个timer是active且未超时的。
 
 # 项目测试
  - 项目测试使用到了支持长连接测试webbench，测试结果如下图所示，作为对比同时测试了linyaWeb在本机环境下的长连接的测试情况，测试不是非常严谨，仅作一点参考。
